@@ -4,7 +4,15 @@ Portable engineering knowledge and agent capabilities, designed from an
 evidence review of my own repositories (`docs/research/`).
 
 **v0.1 scope:** a lessons ledger and two skills. Deliberately small. See
-`V0.1_DESIGN_SPECIFICATION.md` for what is intentionally not here and why.
+`docs/V0.1_DESIGN_SPECIFICATION.md` for what is intentionally not here and why.
+
+> **This repo is private, and not yet safe to publish.** The *lessons* are
+> client-safe by design (generic claims, no client names). But the skill test
+> fixtures (`skills/*/tests/*.md`) and the `VALIDATION.md` files quote real
+> private repositories by name, verbatim source, business logic, and issue/PR
+> numbers — that is what makes them trustworthy as validation, and what makes
+> them unpublishable as-is. Before any public release, scrub or exclude
+> `skills/*/tests/` and `skills/*/VALIDATION.md`. See "Before publishing" below.
 
 ## Layout
 
@@ -144,3 +152,21 @@ nothing is dead weight.
 | `active` | Believed current | Inline freely |
 | `unverified-since <version>` | Was true; conditions may have changed | Inline; the text says to re-check |
 | `superseded by <slug>` | Proven false or replaced | Never inline. **Never delete** — why it was believed, and what disproved it, is itself the lesson. |
+
+## Before publishing
+
+This repo is currently private. If you ever make it public:
+
+1. **Remove or sanitize `skills/*/tests/*.md`** — they contain verbatim source
+   and business logic from private repos.
+2. **Remove or sanitize `skills/*/VALIDATION.md`** — they name private repos and
+   real issue/PR numbers.
+3. **Re-check `docs/research/`** — the archaeology reports reference private repos
+   throughout; decide whether they go public or stay in a private branch.
+4. The `lessons/`, `templates/`, `scripts/`, `AGENTS.md`, and `SKILL.md` files are
+   already client-safe and can be published as-is.
+
+The cleanest split, if you want a public face without losing the validation
+evidence: keep a private `main` and publish a `public` branch with steps 1–3
+applied. Do not try to scrub in place on the only copy — the real hunks are the
+proof the skills work, and you will want them.

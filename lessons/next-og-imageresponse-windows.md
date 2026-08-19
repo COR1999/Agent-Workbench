@@ -1,7 +1,7 @@
 ---
 applies-to: [nextjs, windows]
 discovered: 2026-07
-status: unverified-since next@16.2.10
+status: unverified-since next@14.2.35
 ---
 
 # Don't use next/og's ImageResponse on Windows
@@ -26,6 +26,6 @@ bug is still live, so this is the right default regardless.
 enforce it, but is probably not worth writing for a one-line judgement call.
 Prose is acceptable here.
 
-**Staleness note:** observed on Next 14.2.35. Not re-verified since. If a future
-project wants `ImageResponse`, re-check whether it still reproduces before
-treating this as current.
+**Staleness note:** observed on Next 14.2.35 (matches the frontmatter). Not
+re-verified since. If a future project wants `ImageResponse`, re-check whether it
+still reproduces before treating this as current.

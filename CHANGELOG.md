@@ -7,7 +7,9 @@ judgement or the import contract changed in a way that could alter results;
 Skills install once per machine, so only one version is ever active — versions
 exist for communication and rollback, not concurrent use.
 
-## [Unreleased]
+## [0.1.1] — 2026-08-20
+
+Fixes from an independent review of the v0.1.0 build.
 
 ### Fixed
 - **Machine rules now actually reach the agent.** `install.sh` previously
@@ -18,6 +20,28 @@ exist for communication and rollback, not concurrent use.
   Windows path resolution — the fragility this repo has a lesson about.
 - Added `.gitattributes` forcing `*.sh` to LF so a Windows checkout can't corrupt
   the shell scripts with CRLF line endings.
+- **Added the root `CLAUDE.md` (`@AGENTS.md`)** the docs promised but that was
+  missing — the workbench now eats its own dog food.
+- **`skills/deslop/VALIDATION.md`: corrected the coverage accounting.** The
+  mechanical-guard count was overstated as "20 of 22"; the accurate figure is
+  13 mechanically guarded / 9 by judgment. Every hunk is still protected by a
+  stated rule; only the accounting of *which* mechanism was wrong.
+- **`adopt.sh` now matches the managed block on its stable prefix**, like
+  `unadopt.sh`, so editing the marker wording between versions can no longer leave
+  an old block unrecognised and append a duplicate.
+- **`next-og-imageresponse-windows` version fixed** — frontmatter and body
+  disagreed (`16.2.10` vs `14.2.35`); both now say `14.2.35`, the observed value.
+
+### Changed
+- `adopt.sh` detects more of the `applies-to` vocabulary (radix, vitest,
+  playwright, isr, vercel, railway, fastapi, sqlalchemy, gemini, supabase-dir).
+  `templates/lesson.md` now documents that the detector is a subset and that a
+  lesson using an undetected value will silently not inline.
+- `README.md`: added a **"Before publishing"** section. The lessons are
+  client-safe, but the test fixtures and `VALIDATION.md` files quote private
+  repos verbatim and must be scrubbed or excluded before any public release.
+- Marked `docs/V0.1_DESIGN_SPECIFICATION.md` as a frozen historical doc and noted
+  the `reports/` → `docs/research/` path move.
 
 ## [0.1.0] — 2026-08-19
 

@@ -5,43 +5,57 @@ Applying the three gates to every fixture. The gate that matters is
 
 ## should-not-flag — 22/22 preserved ✅
 
-Each hunk, and the gate that saves it (G3 category or the failure-visibility
-clause). "Keyword" = trips the G3 never-remove keyword guard directly.
+Each hunk and the mechanism that saves it. Two mechanism classes:
+**MECH** = the mechanical never-remove guard fires directly (an issue ref, a
+date, a file path, or one of the guard words *found / incident / instead /
+because / was duplicated / deliberately / otherwise*). **JUDGE** = no guard token
+is present; the save depends on a G3 category call (INFO / SAFETY / INTENT) or the
+failure-visibility clause. The distinction matters because MECH is auditable by
+grep and JUDGE is not.
 
-| # | Source | Saved by |
-|---|---|---|
-| 1 | format.ts provenance | keyword `was duplicated` → INFO |
-| 2 | ci.yml pin | keyword date `2026-07-17` + incident prose → INFO/INTENT |
-| 3 | locations.ts guard | keyword `#250` + `throw` → SAFETY |
-| 4 | meta-pixel suppression | eslint-disable + `because` justification → INTENT |
-| 5 | checkout compensating try | keyword `otherwise` + external-call-after-write → SAFETY |
-| 6 | best-effort separate catch | keyword `deliberately` → SAFETY/INTENT |
-| 7 | discriminated `catch` | failure-visibility clause: typed handler, not catch-log → SAFETY |
-| 8 | `unknown[]` generic | INTENT: load-bearing generic (pattern-catalogue explicitly protects) |
-| 9 | isSupabaseConfigured | keyword `null-safe` → INTENT/SAFETY |
-| 10 | ISR revalidate comment | INFO: numeric justification + `revalidatePath` cross-ref |
-| 11 | cookie-bound comment | keyword `Deliberately` → INTENT |
-| 12 | validation `.max()` bounds | SAFETY: input-size bound, not verbosity |
-| 13 | FK cascade provenance (py) | keyword `because` + `used to fail` → INFO |
-| 14 | upload except/HTTPException (py) | SAFETY: re-raise + surfaced 500 |
-| 15 | None-vs-zero (py) | keyword `because` + misrepresent → INFO/SAFETY |
-| 16 | "must not silently become" (py) | INFO: domain invariant |
-| 17 | period-detection (py) | keyword `because` → INFO |
-| 18 | baseline shape (py) | keyword `otherwise` → INFO |
-| 19 | circular-import (py) | keyword `so that` + INTENT |
-| 20 | comparative purity (py) | keyword `because` → INFO |
-| 21 | isSupabaseConfigured guard return | not a removal-category target + failure-visibility → SAFETY |
-| 22 | text-parsing suffix (py) | keyword `because` → INFO |
+| # | Source | Class | The actual trigger |
+|---|---|---|---|
+| 1 | format.ts provenance | MECH | `was duplicated` + file paths |
+| 2 | ci.yml pin | MECH | date `2026-07-17` |
+| 3 | locations.ts guard | MECH | issue ref `#250` (+ SAFETY: `throw`) |
+| 4 | meta-pixel suppression | JUDGE | INTENT: justified `eslint-disable`, no guard word |
+| 5 | checkout compensating try | MECH | `otherwise` (+ SAFETY: external-call-after-write) |
+| 6 | best-effort separate catch | MECH | `deliberately` |
+| 7 | discriminated `catch` | JUDGE | failure-visibility: typed handler, not catch-log |
+| 8 | `unknown[]` generic | JUDGE | INTENT: pure code, no comment; load-bearing generic |
+| 9 | isSupabaseConfigured | MECH | file path `lib/resend.ts` in the comment |
+| 10 | ISR revalidate comment | MECH | file path `revalidate-storefront.ts` |
+| 11 | cookie-bound comment | MECH | `Deliberately` |
+| 12 | validation `.max()` bounds | JUDGE | SAFETY: pure code, input-size bound |
+| 13 | FK cascade provenance (py) | JUDGE | INFO: comment carries no guard word |
+| 14 | upload except/HTTPException (py) | JUDGE | SAFETY: pure code, re-raise + surfaced 500 |
+| 15 | None-vs-zero (py) | MECH | `because` |
+| 16 | "must not silently become" (py) | JUDGE | INFO: invariant, no guard word |
+| 17 | period-detection (py) | MECH | `because` |
+| 18 | baseline shape (py) | MECH | `otherwise` |
+| 19 | circular-import (py) | JUDGE | INTENT: "so that" is not a guard word |
+| 20 | comparative purity (py) | MECH | `because` |
+| 21 | isSupabaseConfigured guard return | JUDGE | not a removal target + failure-visibility |
+| 22 | text-parsing suffix (py) | MECH | `because` |
 
-**Honest note on coverage strength.** 20 of 22 are protected by the mechanical
-keyword guard, the strongest and most auditable mechanism. **Two (#7, #21) are
-not** — they carry no keyword and rely on softer logic: #7 on the
-failure-visibility clause recognising a typed handler, #21 on the pattern
-catalogue simply not targeting a bare guard clause. These are the hunks most at
-risk from a careless run, so they are the two to watch first if a real false
-positive ever appears. The keyword guard alone would preserve them too *if* they
-had a comment — the takeaway is that under-commented legitimate code is where the
-residual risk sits, which matches intuition.
+**Honest coverage accounting.** **13 of 22 are MECH** (grep-auditable): #1, #2,
+#3, #5, #6, #9, #10, #11, #15, #17, #18, #20, #22. **9 are JUDGE**: #4, #7, #8,
+#12, #13, #14, #16, #19, #21. Every one of the 22 is still protected by a rule
+actually stated in `SKILL.md` — the skill's safety story holds — but only 13 are
+protected by the mechanical guard, not the "20 of 22" an earlier draft of this
+doc claimed. That claim was wrong; this is the corrected count.
+
+**Where the real residual risk sits.** The nine JUDGE hunks depend on the model
+making the right category call at review time. The sharpest of these is **#14**:
+a re-raising `except` block with no comment, saved only by the failure-visibility
+clause correctly reading "the failure stays visible." If that clause is applied
+carelessly, #14 (and #7, #12) are the first hunks that could be wrongly touched.
+The five JUDGE hunks that are pure uncommented code (#8, #12, #14, #21, and the
+guard-return #21) are the ones a mechanical guard can never protect — the lesson
+is that legitimate but *uncommented* engineering is where deslop must lean hardest
+on judgment, and where a human should look first if a false positive ever appears.
+A cheap hardening, deferred: add a comment to #8/#12/#14-shaped code in real use so
+the mechanical guard covers them too.
 
 ## should-flag — 9/10 flagged, 1 correctly rerouted ✅
 

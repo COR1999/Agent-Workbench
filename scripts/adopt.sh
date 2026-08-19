@@ -3,8 +3,10 @@
 # matching lessons + the record-work reminder + a version marker into the
 # project's AGENTS.md, and ensure CLAUDE.md points at it.
 #
-# Idempotent: the managed content lives between markers and is rewritten in
-# place on every run. Your own edits outside the markers are never touched.
+# Idempotent: the managed block (between the pas:start / pas:end markers) is
+# stripped and re-appended at the end of AGENTS.md on every run. Your own edits
+# outside the markers are never touched, though content you place *after* the
+# block will end up above it after a re-run (relocated, never lost).
 #
 # Usage:  scripts/adopt.sh /path/to/project
 #
@@ -20,6 +22,10 @@ TODAY="$(date +%Y-%m-%d)"
 LESSONS_DIR="$WORKBENCH/lessons"
 START="<!-- pas:start — managed by personal-agent-system; do not edit inside this block -->"
 END="<!-- pas:end -->"
+# Match existing blocks on the STABLE prefix, not the full START text — otherwise
+# editing the START wording between versions would leave old blocks unrecognised
+# and a re-run would append a duplicate. unadopt.sh uses the same prefix.
+START_PREFIX="<!-- pas:start"
 
 # ---- detect stack -------------------------------------------------------------
 cd "$PROJECT"
@@ -39,8 +45,21 @@ grep -q '@supabase'  package.json 2>/dev/null && add supabase
 grep -q '"stripe"'   package.json 2>/dev/null && add stripe
 grep -q '"resend"'   package.json 2>/dev/null && add resend
 grep -q '"eslint"'   package.json 2>/dev/null && add eslint
+grep -q '@radix-ui'  package.json 2>/dev/null && add radix
+grep -q '"vitest"'   package.json 2>/dev/null && add vitest
+grep -q '@playwright/test' package.json 2>/dev/null && add playwright
+{ [ -f supabase ] || [ -d supabase ]; } 2>/dev/null && add supabase   # dir form, in addition to the dep grep above
+grep -rqs 'export const revalidate\|next: *{ *revalidate' src app 2>/dev/null && add isr
+[ -f vercel.json ] && add vercel
+{ [ -f railway.json ] || [ -f Procfile ]; } && add railway
+grep -rqsi 'fastapi' pyproject.toml requirements.txt 2>/dev/null && add fastapi
+grep -rqsi 'sqlalchemy' pyproject.toml requirements.txt 2>/dev/null && add sqlalchemy
+grep -rqsi 'google-genai\|google-generativeai' pyproject.toml requirements.txt package.json 2>/dev/null && add gemini
 [ -d .github/workflows ] && add github-actions
 case "$(uname -s)" in MINGW*|MSYS*|CYGWIN*) add windows;; Darwin) add macos;; esac
+# Not auto-detected (rare / structural): postgres, webhooks. A lesson tagged with
+# one of these will simply never match until detection is added — see the note in
+# templates/lesson.md. No error; it just won't inline.
 
 # ---- match lessons (AND: every applies-to value must be present) ---------------
 matched=""
@@ -84,7 +103,7 @@ fi
 
 # ---- replace the managed block idempotently -----------------------------------
 # Strip any existing block, then append the fresh one.
-awk -v s="$START" -v e="$END" '
+awk -v s="$START_PREFIX" -v e="$END" '
   index($0,s){skip=1}
   !skip{print}
   index($0,e){skip=0; next}

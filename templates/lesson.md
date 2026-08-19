@@ -92,6 +92,13 @@ Prefer the narrowest accurate set. `[nextjs, windows]` matches fewer projects
 than `[nextjs]`, and that is the point — a lesson that matches everything is a
 rule, and a lesson that matches nothing is dead weight.
 
+**The auto-detector (`scripts/adopt.sh`) covers a subset of this vocabulary.**
+Most values are detected; a few structural ones (`postgres`, `webhooks`) are not,
+and `supabase` is detected by dependency and directory. A lesson tagged with an
+undetected value will silently never inline — no error, it just won't appear in a
+project. If you add a lesson using an undetected value, add its detection line to
+`adopt.sh` at the same time, next to the others.
+
 **Matching is AND, and this is deliberate.** Every value must be present for the
 lesson to apply. The known cost is that some lessons under-reach: the truth in
 `compensate-after-external-call` holds for any external call in a write path,
