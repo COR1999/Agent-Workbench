@@ -1,0 +1,21 @@
+# This repo is Markdown, shell scripts, and skill definitions. There is no build
+# step and no package manager. Almost nothing should be ignored — if something
+# here needs ignoring, that is a smell worth questioning.
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+*~
+.vscode/
+.idea/
+*.swp
+
+# Anything a stray tool might drop that does NOT belong in a no-build repo
+node_modules/
+.env
+.env.*
+*.log
+
+# Scratch space, if you ever clone test repos inside the workbench
+.scratch/

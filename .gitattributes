@@ -1,0 +1,8 @@
+# Shell scripts MUST use LF endings — bash breaks on CRLF (`\r command not found`).
+# Without this, a checkout on Windows would corrupt scripts/*.sh.
+*.sh text eol=lf
+
+# Markdown and everything else: normalize to LF in the repo, let git handle
+# the working-copy ending. Keeps the repo clean cross-platform.
+*.md text
+* text=auto
