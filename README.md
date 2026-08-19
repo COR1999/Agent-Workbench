@@ -86,9 +86,16 @@ per-project step).
 scripts/install.sh
 ```
 
-Symlinks each skill into `~/.claude/skills` and `~/.agents/skills` (copy fallback
-where symlinks aren't available). Skills are then usable in every project — there
-is no per-project skill step.
+Does two machine-global things (and nothing per-project):
+
+1. Symlinks each skill into `~/.claude/skills` and `~/.agents/skills` (copy
+   fallback where symlinks aren't available). Skills are then usable everywhere.
+2. Copies the machine-wide **rules** from this repo's `AGENTS.md` into
+   `~/.claude/CLAUDE.md`, inside an idempotent managed block, so they load in
+   every session. Without this the rules reach no agent. (Copied, not
+   `@`-imported, to sidestep absolute-Windows-path resolution.)
+
+Re-run after `git pull` to refresh both. Idempotent — safe to run repeatedly.
 
 ## Adopting into a project
 

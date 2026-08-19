@@ -9,6 +9,16 @@ exist for communication and rollback, not concurrent use.
 
 ## [Unreleased]
 
+### Fixed
+- **Machine rules now actually reach the agent.** `install.sh` previously
+  installed only skills; the machine-wide rules in `AGENTS.md` (Git Bash path
+  mangling, no-Docker honesty, verification/coverage rules) loaded nowhere.
+  `install.sh` now also copies them into `~/.claude/CLAUDE.md` inside an
+  idempotent managed block. Copied rather than `@`-imported to avoid absolute
+  Windows path resolution — the fragility this repo has a lesson about.
+- Added `.gitattributes` forcing `*.sh` to LF so a Windows checkout can't corrupt
+  the shell scripts with CRLF line endings.
+
 ## [0.1.0] — 2026-08-19
 
 First gated release. Everything below was validated against real repository
