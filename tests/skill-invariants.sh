@@ -33,6 +33,10 @@ check skills/deslop/SKILL.md "no dedicated .any. clause"      "no dedicated any 
 echo "capture-lesson:"
 check skills/capture-lesson/SKILL.md "four-part test"      "applies the four-part test"
 
+echo "handoff:"
+check skills/handoff/SKILL.md "boundaries, not percentages" "resets on boundaries, not context %"
+check skills/handoff/SKILL.md "tactical"                    "carries tactical state only (durable goes to map/lessons)"
+
 echo
 if [ "$fails" -eq 0 ]; then
   echo "all skill invariants held."

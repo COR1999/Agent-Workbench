@@ -7,6 +7,18 @@ judgement or the import contract changed in a way that could alter results;
 Skills install once per machine, so only one version is ever active — versions
 exist for communication and rollback, not concurrent use.
 
+## [0.3.0] — 2026-08-20
+
+### Added
+- **skills/handoff** + **docs/CONTEXT-LOOP.md** — the "smart context loop"
+  exploration (#9). Keep ephemeral session context small; move durable state to
+  artifacts a fresh session reloads. The map + git are the strategic layer we
+  already had; `handoff` adds the tactical between-session baton (goal / done /
+  remaining / blocker / files / next action). Honest finding: an agent can't
+  reliably self-measure context %, so resets happen on **boundaries** (a
+  completed unit), not a hard-coded 40%. Deliberately NOT built: a
+  context-policy runtime, adaptive thresholds, model orchestration.
+
 ## [0.2.4] — 2026-08-20
 
 ### Added

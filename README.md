@@ -115,6 +115,7 @@ having only while every entry changes what an agent does.
 | [sweep-the-class](skills/sweep-the-class/SKILL.md) | After a fix, before calling it done — find sibling instances of the same defect | Never edits; reports an inventory + coverage. Retrospectively validated (10/10 and 2/2 on real history). |
 | [deslop](skills/deslop/SKILL.md) | On an AI-generated diff, before committing — strip model noise | Diff-scoped; never removes information, safety, or intent. Gated at 22/22 on real should-not-flag hunks. |
 | [capture-lesson](skills/capture-lesson/SKILL.md) | Immediately after something surprises you or costs you time | Applies the four-part test; writes to `lessons/` + updates README. Refuses to write a lesson that fails the test. |
+| [handoff](skills/handoff/SKILL.md) | When context is getting long / a session is ending / resuming a fresh session | Writes/reads a tactical handoff so a near-empty session continues without the old conversation. See [docs/CONTEXT-LOOP.md](docs/CONTEXT-LOOP.md). |
 
 Each skill's `VALIDATION.md` records how it was tested against real repository
 history. Install with `scripts/install.sh` (once per machine — skills need no
