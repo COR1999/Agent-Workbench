@@ -56,6 +56,17 @@ docs/
   written by `adopt.sh`. Lessons additionally carry their own `(slug, date)`
   markers. Together these make a future staleness check a `grep`, not a rewrite.
 
+## Working across sessions
+
+Development that spans more than one AI session is tracked as durable memory on
+GitHub Issues, not in any one session's context. Start here:
+
+- **[Agent-Workbench development map](../../issues/7)** (`wayfinder:map`) — what's
+  done, what's on the frontier, what's blocked, the last decisions. Read it first
+  when resuming.
+- **[docs/WAYFINDING.md](docs/WAYFINDING.md)** — the model: map + decision
+  tickets + fog-of-war, inspired by Matt Pocock's Wayfinder.
+
 ## The three-way split
 
 Everything here is one of three things, and keeping them apart is the whole
