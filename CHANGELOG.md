@@ -7,6 +7,15 @@ judgement or the import contract changed in a way that could alter results;
 Skills install once per machine, so only one version is ever active — versions
 exist for communication and rollback, not concurrent use.
 
+## [0.2.1] — 2026-08-20
+
+### Changed
+- **`adopt.sh` now detects monorepo stacks.** Checks `frontend/`, `backend/`,
+  `web/`, `app/`, `client/`, `server/` subdirs for their own `package.json`,
+  `requirements.txt`, `pyproject.toml`, `tsconfig.json`, `components.json`.
+  A repo like `senus-board-report` (Python backend + Next.js frontend) now
+  correctly detects all 15 stack values and matches the appropriate lessons.
+
 ## [0.2.0] — 2026-08-20
 
 ### Added

@@ -31,30 +31,47 @@ START_PREFIX="<!-- pas:start"
 cd "$PROJECT"
 det=" "
 add() { det="${det}$1 "; }
-[ -f package.json ]     && add node
-[ -f tsconfig.json ]    && add typescript
-[ -f pyproject.toml ] || [ -f requirements.txt ] && add python
-grep -q '"react"'   package.json 2>/dev/null && add react
-grep -q '"next"'    package.json 2>/dev/null && add nextjs
-{ [ -f src/app/layout.tsx ] || [ -f app/layout.tsx ]; } && add nextjs-app-router
-grep -rqs 'use server' src app 2>/dev/null && add server-actions
-grep -q '"tailwindcss": *"\^3' package.json 2>/dev/null && add tailwind-v3
-grep -q '"tailwindcss": *"\^4' package.json 2>/dev/null && add tailwind-v4
-[ -f components.json ]  && add shadcn
-grep -q '@supabase'  package.json 2>/dev/null && add supabase
-grep -q '"stripe"'   package.json 2>/dev/null && add stripe
-grep -q '"resend"'   package.json 2>/dev/null && add resend
-grep -q '"eslint"'   package.json 2>/dev/null && add eslint
-grep -q '@radix-ui'  package.json 2>/dev/null && add radix
-grep -q '"vitest"'   package.json 2>/dev/null && add vitest
-grep -q '@playwright/test' package.json 2>/dev/null && add playwright
-{ [ -f supabase ] || [ -d supabase ]; } 2>/dev/null && add supabase   # dir form, in addition to the dep grep above
-grep -rqs 'export const revalidate\|next: *{ *revalidate' src app 2>/dev/null && add isr
+
+# Collect all package.json and requirements.txt files (root + common monorepo subdirs)
+pkgs="package.json"
+reqs="pyproject.toml requirements.txt"
+for sub in frontend backend web app client server; do
+  [ -f "$sub/package.json" ] && pkgs="$pkgs $sub/package.json"
+  [ -f "$sub/pyproject.toml" ] && reqs="$reqs $sub/pyproject.toml"
+  [ -f "$sub/requirements.txt" ] && reqs="$reqs $sub/requirements.txt"
+done
+
+# Node / Python presence
+for p in $pkgs; do [ -f "$p" ] && { add node; break; }; done
+[ -f tsconfig.json ] && add typescript
+for sub in frontend backend web app client server .; do [ -f "$sub/tsconfig.json" ] && { add typescript; break; }; done
+for r in $reqs; do [ -f "$r" ] && { add python; break; }; done
+
+# JS deps (grep across all package.jsons)
+grep -qh '"react"' $pkgs 2>/dev/null && add react
+grep -qh '"next"' $pkgs 2>/dev/null && add nextjs
+{ [ -f src/app/layout.tsx ] || [ -f app/layout.tsx ] || [ -f frontend/app/layout.tsx ]; } && add nextjs-app-router
+grep -rqs 'use server' src app frontend/app frontend/src 2>/dev/null && add server-actions
+grep -qh '"tailwindcss": *"\^3' $pkgs 2>/dev/null && add tailwind-v3
+grep -qh '"tailwindcss": *"\^4' $pkgs 2>/dev/null && add tailwind-v4
+{ [ -f components.json ] || [ -f frontend/components.json ]; } && add shadcn
+grep -qh '@supabase' $pkgs 2>/dev/null && add supabase
+grep -qh '"stripe"' $pkgs 2>/dev/null && add stripe
+grep -qh '"resend"' $pkgs 2>/dev/null && add resend
+grep -qh '"eslint"' $pkgs 2>/dev/null && add eslint
+grep -qh '@radix-ui' $pkgs 2>/dev/null && add radix
+grep -qh '"vitest"' $pkgs 2>/dev/null && add vitest
+grep -qh '@playwright/test' $pkgs 2>/dev/null && add playwright
+{ [ -f supabase ] || [ -d supabase ]; } 2>/dev/null && add supabase
+grep -rqs 'export const revalidate\|next: *{ *revalidate' src app frontend/app frontend/src 2>/dev/null && add isr
 [ -f vercel.json ] && add vercel
-{ [ -f railway.json ] || [ -f Procfile ]; } && add railway
-grep -rqsi 'fastapi' pyproject.toml requirements.txt 2>/dev/null && add fastapi
-grep -rqsi 'sqlalchemy' pyproject.toml requirements.txt 2>/dev/null && add sqlalchemy
-grep -rqsi 'google-genai\|google-generativeai' pyproject.toml requirements.txt package.json 2>/dev/null && add gemini
+{ [ -f railway.json ] || [ -f Procfile ] || [ -f backend/Procfile ]; } && add railway
+
+# Python deps (grep across all requirements/pyproject)
+grep -qhsi 'fastapi' $reqs 2>/dev/null && add fastapi
+grep -qhsi 'sqlalchemy' $reqs 2>/dev/null && add sqlalchemy
+grep -qhsi 'google-genai\|google-generativeai' $reqs $pkgs 2>/dev/null && add gemini
+
 [ -d .github/workflows ] && add github-actions
 case "$(uname -s)" in MINGW*|MSYS*|CYGWIN*) add windows;; Darwin) add macos;; esac
 # Not auto-detected (rare / structural): postgres, webhooks. A lesson tagged with
