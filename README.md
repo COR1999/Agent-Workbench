@@ -56,6 +56,15 @@ docs/
   written by `adopt.sh`. Lessons additionally carry their own `(slug, date)`
   markers. Together these make a future staleness check a `grep`, not a rewrite.
 
+## Tests
+
+```
+bash tests/skill-invariants.sh
+```
+
+Locks each skill's load-bearing rules so they can't be silently edited out of a
+`SKILL.md`. Exit 0 = all held. No build step, no dependencies.
+
 ## Working across sessions
 
 Development that spans more than one AI session is tracked as durable memory on

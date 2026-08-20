@@ -7,6 +7,17 @@ judgement or the import contract changed in a way that could alter results;
 Skills install once per machine, so only one version is ever active — versions
 exist for communication and rollback, not concurrent use.
 
+## [0.2.3] — 2026-08-20
+
+### Added
+- **`tests/skill-invariants.sh`** — a tiny plain-shell suite that greps each
+  `SKILL.md` for its load-bearing rules (sweep-the-class "never edits" + coverage;
+  deslop's information/safety/intent gate, failure-visibility clause, and *no*
+  `any` gate; capture-lesson's four-part test) and fails if one is edited out.
+  Our own "encode lessons in structure" rung applied to the skills themselves.
+  Inspired by the bats invariant-tests in `mattpocock`/`mitoperni-squad`; kept to
+  a handful of locks, no bats/build dependency. (Closes #6.)
+
 ## [0.2.2] — 2026-08-20
 
 ### Added
