@@ -7,6 +7,14 @@ judgement or the import contract changed in a way that could alter results;
 Skills install once per machine, so only one version is ever active — versions
 exist for communication and rollback, not concurrent use.
 
+## [0.2.0] — 2026-08-20
+
+### Added
+- **skills/capture-lesson** — captures a lesson while the context is fresh.
+  Prompts for what happened, applies the four-part test (refuses to write if it
+  fails), drafts against the template, writes to `lessons/`, updates the README
+  table. Use immediately after something surprises you or costs you time.
+
 ## [0.1.1] — 2026-08-20
 
 Fixes from an independent review of the v0.1.0 build.
