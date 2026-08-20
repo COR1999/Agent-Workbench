@@ -7,6 +7,11 @@ judgement or the import contract changed in a way that could alter results;
 Skills install once per machine, so only one version is ever active — versions
 exist for communication and rollback, not concurrent use.
 
+## [0.2.4] — 2026-08-20
+
+### Added
+- **MIT `LICENSE`** — the repo is now formally open-source. (Closes #2.)
+
 ## [0.2.3] — 2026-08-20
 
 ### Added

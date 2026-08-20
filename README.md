@@ -9,6 +9,8 @@ best-practice lists.
 `capture-lesson`). Deliberately small. See `docs/V0.1_DESIGN_SPECIFICATION.md`
 for what is intentionally *not* here and why.
 
+**License:** [MIT](LICENSE).
+
 > The import tooling (`adopt.sh`, installed blocks) uses the internal marker
 > prefix `pas` / "personal-agent-system" — the project's original name. Renaming
 > that throughout is tracked as an issue; it touches already-adopted projects, so
