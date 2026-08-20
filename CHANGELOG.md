@@ -7,6 +7,13 @@ judgement or the import contract changed in a way that could alter results;
 Skills install once per machine, so only one version is ever active — versions
 exist for communication and rollback, not concurrent use.
 
+## [0.2.2] — 2026-08-20
+
+### Added
+- Lesson **vitest-fork-timeout-windows** — vitest's default forks pool can hang
+  on Windows (`Timeout waiting for worker to respond`); run with
+  `--no-file-parallelism`. Captured from real work on the Mama Amaya's design pass.
+
 ## [0.2.1] — 2026-08-20
 
 ### Changed
