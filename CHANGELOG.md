@@ -7,6 +7,15 @@ judgement or the import contract changed in a way that could alter results;
 Skills install once per machine, so only one version is ever active — versions
 exist for communication and rollback, not concurrent use.
 
+## [0.4.0] — 2026-08-20
+
+### Added
+- Five net-new skills (build-all, cut-after-testing): **design-handbook** (#4),
+  **explain-and-open-pr** (#5), **agentic-vocabulary** (#8), **tdd** (#10),
+  **grilling** (#11). Each kept minimal with a trigger-first description and
+  invariant locks in `tests/skill-invariants.sh`. To be exercised in production
+  and pruned. Closes #4, #5, #8, #10, #11.
+
 ## [0.3.0] — 2026-08-20
 
 ### Added

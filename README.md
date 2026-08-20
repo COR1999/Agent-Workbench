@@ -116,6 +116,11 @@ having only while every entry changes what an agent does.
 | [deslop](skills/deslop/SKILL.md) | On an AI-generated diff, before committing — strip model noise | Diff-scoped; never removes information, safety, or intent. Gated at 22/22 on real should-not-flag hunks. |
 | [capture-lesson](skills/capture-lesson/SKILL.md) | Immediately after something surprises you or costs you time | Applies the four-part test; writes to `lessons/` + updates README. Refuses to write a lesson that fails the test. |
 | [handoff](skills/handoff/SKILL.md) | When context is getting long / a session is ending / resuming a fresh session | Writes/reads a tactical handoff so a near-empty session continues without the old conversation. See [docs/CONTEXT-LOOP.md](docs/CONTEXT-LOOP.md). |
+| [design-handbook](skills/design-handbook/SKILL.md) | "design/redesign this", "show me what it could look like" | A browsable HTML handbook to approve BEFORE any production code changes. |
+| [explain-and-open-pr](skills/explain-and-open-pr/SKILL.md) | "open a PR", "don't let this stack up" | Isolates the change on a clean branch; commits a work record; PR body leads in plain English. |
+| [tdd](skills/tdd/SKILL.md) | "use TDD", "write the test first" | The red-green loop and the decisions "use TDD" hides. Methodology, not the whole build. |
+| [grilling](skills/grilling/SKILL.md) | Before implementation — "grill this plan", "what am I assuming" | Interviews a plan/spec as a design tree to surface hidden decisions. Interrogates, never builds. |
+| [agentic-vocabulary](skills/agentic-vocabulary/SKILL.md) | When an agentic term is unfamiliar/overloaded | Reference glossary — look a term up instead of inventing its meaning. |
 
 Each skill's `VALIDATION.md` records how it was tested against real repository
 history. Install with `scripts/install.sh` (once per machine — skills need no

@@ -37,6 +37,25 @@ echo "handoff:"
 check skills/handoff/SKILL.md "boundaries, not percentages" "resets on boundaries, not context %"
 check skills/handoff/SKILL.md "tactical"                    "carries tactical state only (durable goes to map/lessons)"
 
+echo "design-handbook:"
+check skills/design-handbook/SKILL.md "[Nn]ever touch production code in Phase 1" "no production changes before approval"
+check skills/design-handbook/SKILL.md "one recommended"     "<=3 options, one recommended"
+
+echo "explain-and-open-pr:"
+check skills/explain-and-open-pr/SKILL.md "never sweep in unrelated" "isolates changes, never sweeps in unrelated work"
+check skills/explain-and-open-pr/SKILL.md "[Pp]lain-[Ee]nglish section is mandatory" "plain-English section required"
+
+echo "tdd:"
+check skills/tdd/SKILL.md "[Nn]ever write implementation before a failing test" "no code before a failing test"
+check skills/tdd/SKILL.md "right reason"                    "red must fail for the right reason"
+
+echo "grilling:"
+check skills/grilling/SKILL.md "[Nn]ever answer your own questions" "human-in-the-loop; never self-answers"
+check skills/grilling/SKILL.md "[Ii]nterrogate, don't implement" "interrogates, does not build"
+
+echo "agentic-vocabulary:"
+check skills/agentic-vocabulary/SKILL.md "inventing a definition" "look up, don't invent, unknown terms"
+
 echo
 if [ "$fails" -eq 0 ]; then
   echo "all skill invariants held."
