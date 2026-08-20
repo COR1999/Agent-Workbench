@@ -1,10 +1,18 @@
-# personal-agent-system
+# Agent-Workbench
 
-Portable engineering knowledge and agent capabilities, designed from an
-evidence review of my own repositories (`docs/research/`).
+Portable engineering knowledge and agent capabilities — a small, evidence-based
+skill library an AI coding agent can carry from project to project. Designed from
+an archaeology of real repositories (`docs/research/`), not from generic
+best-practice lists.
 
-**v0.1 scope:** a lessons ledger and two skills. Deliberately small. See
-`docs/V0.1_DESIGN_SPECIFICATION.md` for what is intentionally not here and why.
+**Scope:** a lessons ledger and three skills (`sweep-the-class`, `deslop`,
+`capture-lesson`). Deliberately small. See `docs/V0.1_DESIGN_SPECIFICATION.md`
+for what is intentionally *not* here and why.
+
+> The import tooling (`adopt.sh`, installed blocks) uses the internal marker
+> prefix `pas` / "personal-agent-system" — the project's original name. Renaming
+> that throughout is tracked as an issue; it touches already-adopted projects, so
+> it's a deliberate future pass, not a blind find-replace.
 
 > **This repo is private, and not yet safe to publish.** The *lessons* are
 > client-safe by design (generic claims, no client names). But the skill test
