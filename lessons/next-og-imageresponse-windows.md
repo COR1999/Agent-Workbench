@@ -1,7 +1,7 @@
 ---
 applies-to: [nextjs, windows]
 discovered: 2026-07
-status: unverified-since next@14.2.35
+status: unverified-since next@14.2.35 — counter-evidence at next@15.4.10
 ---
 
 # Don't use next/og's ImageResponse on Windows
@@ -26,6 +26,11 @@ bug is still live, so this is the right default regardless.
 enforce it, but is probably not worth writing for a one-line judgement call.
 Prose is acceptable here.
 
-**Staleness note:** observed on Next 14.2.35 (matches the frontmatter). Not
-re-verified since. If a future project wants `ImageResponse`, re-check whether it
-still reproduces before treating this as current.
+**Staleness note:** observed on Next 14.2.35 (matches the frontmatter). An
+external audit (issue #16, finding 3) reported the opposite on **next@15.4.10** —
+an edge-runtime `opengraph-image.tsx` built clean on Windows across six
+consecutive builds. Not reproduced here, but enough to treat the failure as
+version-bounded (a fix landed somewhere after 14.2.35) or fixed upstream, rather
+than a current blanket incompatibility. Re-test on your exact Next version before
+treating this as live. The recommendation in **Instead** stands regardless of the
+bug's status — it's the simpler, OS-independent default either way.
