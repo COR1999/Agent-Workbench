@@ -5,8 +5,8 @@ skill library an AI coding agent can carry from project to project. Designed fro
 an archaeology of real repositories (`docs/research/`), not from generic
 best-practice lists.
 
-**Scope:** a lessons ledger and three skills (`sweep-the-class`, `deslop`,
-`capture-lesson`). Deliberately small. See `docs/V0.1_DESIGN_SPECIFICATION.md`
+**Scope:** a lessons ledger and nine skills (see the Skills table below).
+Deliberately small. See `docs/V0.1_DESIGN_SPECIFICATION.md`
 for what is intentionally *not* here and why.
 
 **License:** [MIT](LICENSE).
@@ -33,7 +33,7 @@ VERSION            the workbench version, stamped into projects on import
 CHANGELOG.md       what changed between versions
 lessons/           conditional knowledge — true when applies-to matches
 templates/         lesson.md, project-AGENTS.md
-skills/            sweep-the-class, deslop (each SKILL.md + VALIDATION.md)
+skills/            nine skills (each SKILL.md; validated ones + VALIDATION.md)
 scripts/
   install.sh       machine setup: install skills into the harness skills dirs
   adopt.sh         per-project import (idempotent)
