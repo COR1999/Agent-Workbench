@@ -17,7 +17,7 @@ grep and JUDGE is not.
 |---|---|---|---|
 | 1 | format.ts provenance | MECH | `was duplicated` + file paths |
 | 2 | ci.yml pin | MECH | date `2026-07-17` |
-| 3 | locations.ts guard | MECH | issue ref `#250` (+ SAFETY: `throw`) |
+| 3 | suppliers.ts guard | MECH | issue ref in comment (+ SAFETY: `throw`) |
 | 4 | meta-pixel suppression | JUDGE | INTENT: justified `eslint-disable`, no guard word |
 | 5 | checkout compensating try | MECH | `otherwise` (+ SAFETY: external-call-after-write) |
 | 6 | best-effort separate catch | MECH | `deliberately` |

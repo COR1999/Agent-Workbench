@@ -2,8 +2,8 @@
 
 Portable engineering knowledge and agent capabilities — a small, evidence-based
 skill library an AI coding agent can carry from project to project. Designed from
-an archaeology of real repositories (`docs/research/`), not from generic
-best-practice lists.
+an archaeology of real repositories — its conclusions are distilled in
+`docs/V0.1_DESIGN_SPECIFICATION.md` — not from generic best-practice lists.
 
 **Scope:** a lessons ledger and three skills (`sweep-the-class`, `deslop`,
 `capture-lesson`). Deliberately small. See `docs/V0.1_DESIGN_SPECIFICATION.md`
@@ -11,18 +11,13 @@ for what is intentionally *not* here and why.
 
 **License:** [MIT](LICENSE).
 
-> The import tooling (`adopt.sh`, installed blocks) uses the internal marker
-> prefix `pas` / "personal-agent-system" — the project's original name. Renaming
-> that throughout is tracked as an issue; it touches already-adopted projects, so
-> it's a deliberate future pass, not a blind find-replace.
-
-> **This repo is private, and not yet safe to publish.** The *lessons* are
-> client-safe by design (generic claims, no client names). But the skill test
-> fixtures (`skills/*/tests/*.md`) and the `VALIDATION.md` files quote real
-> private repositories by name, verbatim source, business logic, and issue/PR
-> numbers — that is what makes them trustworthy as validation, and what makes
-> them unpublishable as-is. Before any public release, scrub or exclude
-> `skills/*/tests/` and `skills/*/VALIDATION.md`. See "Before publishing" below.
+> **This repo is public and sanitized for publication.** The *lessons* are
+> client-safe by design (generic claims, no client names). The skill test
+> fixtures (`skills/*/tests/*.md`) and `VALIDATION.md` files still quote real
+> repository history — that is what makes them trustworthy as validation — but
+> every source is anonymized or genericized: no client names, brands, or private
+> issue/PR numbers. `scripts/preflight-public.sh` enforces this mechanically.
+> See "Sanitization policy" below.
 
 ## Layout
 
@@ -40,7 +35,6 @@ scripts/
   unadopt.sh       remove the import from a project
 docs/
   V0.1_DESIGN_SPECIFICATION.md   the design this was built to
-  research/                       the 16-report archaeology it came from
 ```
 
 ## Versioning
@@ -191,20 +185,24 @@ nothing is dead weight.
 | `unverified-since <version>` | Was true; conditions may have changed | Inline; the text says to re-check |
 | `superseded by <slug>` | Proven false or replaced | Never inline. **Never delete** — why it was believed, and what disproved it, is itself the lesson. |
 
-## Before publishing
+## Sanitization policy
 
-This repo is currently private. If you ever make it public:
+This repo is public. The rules that keep it publishable:
 
-1. **Remove or sanitize `skills/*/tests/*.md`** — they contain verbatim source
-   and business logic from private repos.
-2. **Remove or sanitize `skills/*/VALIDATION.md`** — they name private repos and
-   real issue/PR numbers.
-3. **Re-check `docs/research/`** — the archaeology reports reference private repos
-   throughout; decide whether they go public or stay in a private branch.
-4. The `lessons/`, `templates/`, `scripts/`, `AGENTS.md`, and `SKILL.md` files are
-   already client-safe and can be published as-is.
+1. **No client-identifying material anywhere.** No client names, brand names,
+   product names, or private-repo issue/PR numbers. Evidence is cited against
+   anonymized sources ("a known fix set in `client-commerce`", "a tracking
+   issue") — the structure, verdicts, and metrics stay, the identity goes.
+2. **Raw archaeology reports are not in the public tree.** Their conclusions
+   live on in the design spec, the lessons, and each skill's `VALIDATION.md`.
+3. **Run `scripts/preflight-public.sh` before any push.** It greps the tree for
+   known identifying patterns and exits nonzero if any appear. If this repo ever
+   gains collaborators, wire it into CI rather than relying on memory.
+4. **New evidence follows the same rule at write time.** When a lesson or
+   validation doc is captured from client work, genericize it then — not in a
+   future scrub pass.
 
-The cleanest split, if you want a public face without losing the validation
-evidence: keep a private `main` and publish a `public` branch with steps 1–3
-applied. Do not try to scrub in place on the only copy — the real hunks are the
-proof the skills work, and you will want them.
+The import tooling (`adopt.sh`, installed blocks) uses the internal marker
+prefix `pas` / "personal-agent-system" — the project's original name. Renaming
+that throughout is tracked as an issue; it touches already-adopted projects, so
+it's a deliberate future pass, not a blind find-replace.

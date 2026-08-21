@@ -7,6 +7,25 @@ judgement or the import contract changed in a way that could alter results;
 Skills install once per machine, so only one version is ever active — versions
 exist for communication and rollback, not concurrent use.
 
+## [0.5.0] — 2026-08-21
+
+### Changed
+- **Publication sanitization.** The repo is public; all client-identifying
+  material is removed or genericized: private repo names, issue/PR numbers,
+  brand and product names, and brand-voice guidance in `skills/*/VALIDATION.md`,
+  `skills/*/tests/*.md`, and the design spec. Evidence structure, verdicts, and
+  metrics are preserved. `docs/research/` (the raw archaeology reports) is no
+  longer part of the public tree — its conclusions live on in the lessons,
+  skills, and design spec.
+- **New: `scripts/preflight-public.sh`** — greps the tree for known
+  client-identifying patterns and fails with a nonzero exit if any are present.
+  Run before any public push; this is the "Before publishing" checklist made
+  mechanical instead of remembered.
+
+### Fixed
+- README claimed the repo was private while it was public — now states actual
+  visibility and the sanitization policy.
+
 ## [0.4.0] — 2026-08-20
 
 ### Added
@@ -49,7 +68,7 @@ exist for communication and rollback, not concurrent use.
 ### Added
 - Lesson **vitest-fork-timeout-windows** — vitest's default forks pool can hang
   on Windows (`Timeout waiting for worker to respond`); run with
-  `--no-file-parallelism`. Captured from real work on the Mama Amaya's design pass.
+  `--no-file-parallelism`. Captured from real work on a client design pass.
 
 ## [0.2.1] — 2026-08-20
 
