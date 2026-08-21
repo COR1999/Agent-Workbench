@@ -27,7 +27,7 @@ PATTERNS=(
 # which is exactly why rule 4 of the sanitization policy exists: genericize at
 # write time. These catch the historical classes.
 ISSUE_PATTERNS=(
-  '#249|#250|#252|#256|#180|#121|#192|#171|#206|#103|#127|#131|#189'
+  '#249|#250|#252|#256|#180|#121|#192|#171|#206|#103|#127|#131|#189|#223'
 )
 
 have_rg() { command -v rg >/dev/null 2>&1; }
@@ -40,7 +40,7 @@ run_search() {
   if have_rg; then
     out=$(rg -i -n -e "$pattern" . --glob '!scripts/preflight-public.sh' 2>/dev/null)
   else
-    out=$(grep -rIn -i -e "$pattern" . 2>/dev/null | grep -v 'scripts/preflight-public.sh')
+    out=$(grep -rInE -i -e "$pattern" . 2>/dev/null | grep -v 'scripts/preflight-public.sh')
   fi
   if [ -n "$out" ]; then
     echo "FAIL [$label] pattern: $pattern"

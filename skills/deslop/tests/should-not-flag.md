@@ -40,7 +40,7 @@ Comment + the pin itself. Both are the fix for a real outage.
 ### 3 — silent-failure guard with consequence note (SAFETY+INFO) · client-commerce `src/lib/suppliers.ts:35`
 ```ts
   const { data, error } = await supabase...
-  // A genuine query failure must not look like "no suppliers nearby" (see #250-class issue)
+  // A genuine query failure must not look like "no suppliers nearby" (a known silent-failure class)
   // — this backs a public directory page, so a silent failure could read
   // to a customer as "not sold anywhere" rather than a real outage.
   if (error) {

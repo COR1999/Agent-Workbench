@@ -135,7 +135,7 @@ history before shipping (see each skill's `VALIDATION.md`).
   verification honesty, "no issues found" coverage rule, record-work reminder,
   boundary-discipline and encode-in-structure judgement notes.
 - **skills/sweep-the-class** — never-edits sibling-defect finder. Validated:
-  10/10 recall on the PR #252 silent-error class, 2/2 on the #192 unbounded-scan
+  10/10 recall on a silent-error class, 2/2 on an unbounded-scan
   class. Surfaced a real same-class bug the original human fix missed.
 - **skills/deslop** — three-gate AI-noise filter. `any` clause deleted by design.
   Gated at 22/22 on real should-not-flag hunks (TS + Python).
