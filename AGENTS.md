@@ -16,6 +16,9 @@ This machine is Windows 11 with Git Bash.
 - **There is no Docker on this machine.** Anything requiring a container, a local
   Postgres, or `supabase start` runs in CI only. Never report such a step as
   verified locally.
+- **There is no ripgrep on this machine.** `rg` is not on PATH. Content search
+  goes through the Grep tool or PowerShell's `Select-String` — don't spend a
+  command discovering this per session.
 
 ## Verification
 
@@ -25,6 +28,15 @@ This machine is Windows 11 with Git Bash.
 - **"No issues found" is not an acceptable result on its own.** Report what was
   searched, where, and with what pattern. A null result must be distinguishable
   from having done nothing.
+- **An empty delegated result is a failure of delegation, not a null finding.**
+  When a subagent/Task returns no content, treat the delegation itself as
+  having failed: investigate or redo the work with direct tools. Never carry it
+  forward as "searched, found nothing" — that is the same lie as a claimed
+  verification.
+- **An edit that succeeded is not an edit that matched.** Fuzzy matching can
+  apply an `oldString` containing lines that don't exist verbatim in the file.
+  Read back the touched region after any edit whose match you didn't verify —
+  especially one that surprised you by succeeding — before building on it.
 
 ## Work records
 
