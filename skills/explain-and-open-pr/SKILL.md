@@ -39,7 +39,3 @@ follow, without sweeping in the human's other uncommitted work.
 - On Windows/Git Bash, pass `gh` a body file by a real path (its `/tmp` isn't the
   Windows temp); prefix leading-slash args with `MSYS_NO_PATHCONV=1`.
 
-## TODO
-Attaching images (design before/after, screenshots) to PRs needs an image-hosting
-approach decided (Agent-Workbench capability, not per-project). Leave until a skill
-that produces images (design-handbook, #4) needs it.

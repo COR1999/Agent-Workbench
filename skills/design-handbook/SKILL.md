@@ -52,5 +52,4 @@ rewrite. Preserve behaviour, accessibility, responsiveness; keep TS strict; no
   evidence supports them.
 - Project brand decisions (palette, type, personality) stay project-specific.
 
-## TODO
-Attaching before/after images to the resulting PR needs image hosting (issue #5).
+
