@@ -1,4 +1,4 @@
-# should-not-flag corpus
+﻿# should-not-flag corpus
 
 Real hunks from real repositories that deslop **must leave untouched**. Every one
 is legitimate engineering — provenance, deliberate error visibility, a justified
@@ -6,8 +6,9 @@ suppression, a load-bearing type, or a defensive check that looks redundant but
 isn't. A single false positive here is a release blocker (design spec, gate on
 Step 3).
 
-Sources: `hotsauce-mama` (TS), `senus-board-report` (Python + TS). Paths are as of
-the reviewed commit; verbatim.
+Sources: `client-commerce` (TS; a private client e-commerce repo — names and
+issue refs anonymized for publication), `senus-board-report` (Python + TS).
+Paths are as of the reviewed commit; hunks otherwise verbatim.
 
 Gate 3 category legend: **INFO** = information a reader can't recover from code ·
 **SAFETY** = makes failure visible or undoes a partial write · **INTENT** = a
@@ -15,7 +16,7 @@ recorded deliberate choice.
 
 ---
 
-### 1 — provenance comment (INFO) · hotsauce-mama `src/lib/format.ts:12`
+### 1 — provenance comment (INFO) · client-commerce `src/lib/format.ts:12`
 ```ts
 /** Inverse of eurCentsToEuroString — was duplicated across edit-price-form.tsx, edit-shipping-zone-rate-form.tsx, and admin-shipping-zones.ts before being centralized here. */
 export function euroStringToEurCents(euroString: string): number {
@@ -24,7 +25,7 @@ export function euroStringToEurCents(euroString: string): number {
 ```
 Records why this function exists in one place. Deleting it invites re-duplication.
 
-### 2 — dated incident pin (INFO+INTENT) · hotsauce-mama `.github/workflows/ci.yml:45`
+### 2 — dated incident pin (INFO+INTENT) · client-commerce `.github/workflows/ci.yml:45`
 ```yaml
       # Pinned rather than "latest" -- resolving "latest" makes this action
       # call GitHub's release API on every run, which hit a rate limit and
@@ -36,25 +37,25 @@ Records why this function exists in one place. Deleting it invites re-duplicatio
 ```
 Comment + the pin itself. Both are the fix for a real outage.
 
-### 3 — silent-failure guard with consequence note (SAFETY+INFO) · hotsauce-mama `src/lib/locations.ts:35`
+### 3 — silent-failure guard with consequence note (SAFETY+INFO) · client-commerce `src/lib/suppliers.ts:35`
 ```ts
   const { data, error } = await supabase...
-  // A genuine query failure must not look like "no stockists nearby" (#250)
-  // — this backs the public /find-us page, so a silent failure could read
+  // A genuine query failure must not look like "no suppliers nearby" (a known silent-failure class)
+  // — this backs a public directory page, so a silent failure could read
   // to a customer as "not sold anywhere" rather than a real outage.
   if (error) {
-    throw new Error(`Failed to load stockists: ${error.message}`);
+    throw new Error(`Failed to load suppliers: ${error.message}`);
   }
 ```
 This *is* the fix for the #1 bug class. Removing the throw re-introduces it.
 
-### 4 — justified lint suppression (INTENT) · hotsauce-mama `src/components/shared/meta-pixel.tsx:91`
+### 4 — justified lint suppression (INTENT) · client-commerce `src/components/shared/meta-pixel.tsx:91`
 ```tsx
 {/* eslint-disable-next-line @next/next/no-img-element -- Meta's official pixel fallback requires a plain <img>, not next/image (no optimization applies to a 1x1 tracking pixel). */}
 ```
 Suppression carries its own justification. Exactly what a suppression should look like.
 
-### 5 — compensating try/catch (SAFETY+INFO) · hotsauce-mama `src/app/actions/checkout.ts:96`
+### 5 — compensating try/catch (SAFETY+INFO) · client-commerce `src/app/actions/checkout.ts:96`
 ```ts
   // Everything below creates the actual Stripe Checkout Session — stock is
   // already reserved and the order already exists at this point. If any of
@@ -66,7 +67,7 @@ Suppression carries its own justification. Exactly what a suppression should loo
 ```
 Load-bearing error handling. The comment explains an invariant no code shows.
 
-### 6 — deliberately-separate best-effort catch (SAFETY+INTENT) · hotsauce-mama `src/app/actions/checkout.ts:171`
+### 6 — deliberately-separate best-effort catch (SAFETY+INTENT) · client-commerce `src/app/actions/checkout.ts:171`
 ```ts
     // Best-effort, and deliberately its own try/catch rather than sharing
     // the one below: the order/Stripe session already succeeded above, and
@@ -74,7 +75,7 @@ Load-bearing error handling. The comment explains an invariant no code shows.
 ```
 Looks like it could be merged with the adjacent block. Must not be — the comment says why.
 
-### 7 — discriminated error handling (SAFETY) · hotsauce-mama `src/app/actions/checkout.ts:84`
+### 7 — discriminated error handling (SAFETY) · client-commerce `src/app/actions/checkout.ts:84`
 ```ts
   } catch (error) {
     if (error instanceof OutOfStockError) {
@@ -82,13 +83,13 @@ Looks like it could be merged with the adjacent block. Must not be — the comme
 ```
 Typed branch on a domain error. Not a catch-log-rethrow to be flattened.
 
-### 8 — load-bearing generic (INTENT) · hotsauce-mama `src/lib/hooks/use-server-action.ts:14`
+### 8 — load-bearing generic (INTENT) · client-commerce `src/lib/hooks/use-server-action.ts:14`
 ```ts
 export function useServerAction<TArgs extends unknown[]>(action: (...args: TArgs) => Promise<ActionResult>) {
 ```
 `unknown[]` is the correct variance-preserving bound. Not lazy typing; do not "simplify."
 
-### 9 — null-safe integration guard (SAFETY+INFO) · hotsauce-mama `src/lib/commerce/storefront.ts:41`
+### 9 — null-safe integration guard (SAFETY+INFO) · client-commerce `src/lib/commerce/storefront.ts:41`
 ```ts
  * than crashing. Same null-safe philosophy as lib/resend.ts.
  */
@@ -98,7 +99,7 @@ function isSupabaseConfigured() {
 ```
 Exists so tests and previews run unconfigured. The cross-reference is information.
 
-### 10 — ISR reasoning (INFO+INTENT) · hotsauce-mama `src/app/products/page.tsx:18`
+### 10 — ISR reasoning (INFO+INTENT) · client-commerce `src/app/products/page.tsx:18`
 ```ts
 // the highest-traffic page in the app, so under a real spike this caps DB
 // load/server invocations instead of scaling 1:1 with visitors. Freshness
@@ -109,7 +110,7 @@ export const revalidate = 300;
 ```
 `300` is not a magic number — the comment is its entire justification.
 
-### 11 — deliberate client-choice comment (INTENT) · hotsauce-mama `src/lib/commerce/storefront.ts:46`
+### 11 — deliberate client-choice comment (INTENT) · client-commerce `src/lib/commerce/storefront.ts:46`
 ```ts
 /**
  * Deliberately still the cookie-bound client, unlike getAllCommerceProducts
@@ -117,7 +118,7 @@ export const revalidate = 300;
 ```
 Prevents a "consistency" refactor that would break auth context.
 
-### 12 — deliberate validation bounds (SAFETY) · hotsauce-mama `src/lib/validation.ts:5`
+### 12 — deliberate validation bounds (SAFETY) · client-commerce `src/lib/validation.ts:5`
 ```ts
   name: z.string().min(1, "Please enter your name.").max(200, "Name must be 200 characters or fewer."),
   message: z.string().min(10, "...").max(5000, "Message must be 5000 characters or fewer."),
@@ -191,7 +192,7 @@ The unusual import position is deliberate; the comment is why it can't move.
 ```
 Explains an intentional data choice; removing it loses the rationale.
 
-### 21 — validation guard reused as parse (INTENT) · hotsauce-mama `src/lib/commerce/storefront.ts:67`
+### 21 — validation guard reused as parse (INTENT) · client-commerce `src/lib/commerce/storefront.ts:67`
 ```ts
   if (!isSupabaseConfigured()) return null;
 ```
