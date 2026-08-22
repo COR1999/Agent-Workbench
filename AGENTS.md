@@ -50,6 +50,16 @@ This machine is Windows 11 with Git Bash.
   verified. Cross-reference related issues by number. Do not reduce a fix to a
   one-line subject — the body is the only durable account of why the code is the
   way it is.
+- **Every commit, PR, and issue a model authors must name the model that wrote
+  it — provider, model, and version — so contributions can be traced to a
+  specific model and compared for reliability over time.** Add a `Model:` trailer
+  to commit messages (last line, after the work-record body), and a matching
+  `Model:` line at the foot of every PR and issue body. Format:
+  `Model: <Provider> <Model> (<model-id>)`, e.g.
+  `Model: Anthropic Claude Opus 4.8 (claude-opus-4-8)`. Name the actual model
+  doing the work, never a placeholder or a default; a human-authored change
+  carries no such line. This is provenance, not attribution theatre — it exists
+  so the human can weight trust by which model produced the work.
 
 ## Lessons
 
