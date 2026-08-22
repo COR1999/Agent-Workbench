@@ -7,6 +7,16 @@ judgement or the import contract changed in a way that could alter results;
 Skills install once per machine, so only one version is ever active — versions
 exist for communication and rollback, not concurrent use.
 
+## [0.6.1] — 2026-08-22
+
+### Added
+- **README "Working here (for the agent)" section** — an orientation for any
+  agent landing in the repo: what it's for (a carry-along toolkit, not an app),
+  and the loop — use the skills, capture lessons when surprised, report evidence
+  after deploying a skill so it earns/loses its place, the human-triggered
+  "dreaming" evolution pass, and signing work with a `Model:` line. Makes the
+  operating model explicit instead of implicit.
+
 ## [0.6.0] — 2026-08-22
 
 ### Added

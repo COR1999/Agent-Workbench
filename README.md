@@ -19,6 +19,41 @@ for what is intentionally *not* here and why.
 > issue/PR numbers. `scripts/preflight-public.sh` enforces this mechanically.
 > See "Sanitization policy" below.
 
+## Working here (for the agent)
+
+If you are an AI agent operating in this repo, this is what it is *for* and how
+its loop works — read this before defaulting to your own habits.
+
+**Purpose.** This is a *carry-along toolkit*, not an app to build. Its value is
+that you reuse its skills and lessons across projects instead of re-deriving them
+every session. When a task matches a skill, use the skill.
+
+**1 — Use the skills.** `skills/` holds packaged, evidence-tested procedures (each
+with a `SKILL.md` and a `VALIDATION.md`). They trigger from their descriptions or
+by name; consult the matching one before improvising. A skill encodes a decision
+that was already litigated against real repositories — don't relitigate it blind.
+
+**2 — Keep learning (lessons).** When something surprises you or costs you time
+and the cause is *portable* (not specific to the project you're in), capture it
+with the `capture-lesson` skill into `lessons/`. The library only stays sharp if
+real friction feeds back into it. A lesson is conditional knowledge (true when its
+`applies-to` matches); a rule in `AGENTS.md` is unconditional.
+
+**3 — Report evidence when deployed.** After using a skill on real work, record
+whether it earned its place — where it fired, whether it helped, where it missed.
+This evidence is what promotes, sharpens, or *cuts* a skill: one that never pulls
+its weight is removed, not kept out of politeness. `docs/WAYFINDING.md` is the
+cross-session state this feeds.
+
+**4 — Dreaming (evolution).** Periodically the accumulated lessons and evidence
+are mined for patterns that should become a new skill, a CI check, or a cut. This
+is currently a deliberate, human-triggered pass — treat it as the intended
+direction, not a running automated loop (see `docs/CONTEXT-LOOP.md`).
+
+**5 — Sign your work.** Every commit, PR, and issue you author carries a `Model:`
+line naming you — provider, model, version (see `AGENTS.md` "Work records"). This
+is how a contribution is traced to a specific model and weighted for trust.
+
 ## Layout
 
 ```
