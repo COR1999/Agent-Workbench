@@ -41,6 +41,7 @@ scripts/
 docs/
   V0.1_DESIGN_SPECIFICATION.md   the design this was built to
   research/                       the 16-report archaeology it came from
+  .research/                      gitignored: plugin/research folders + raw dumps
 ```
 
 ## Versioning
@@ -96,6 +97,7 @@ context and does not belong here.
 
 | Lesson | Applies to | Claim |
 |---|---|---|
+| [btoa-is-latin1-not-url-safe](lessons/btoa-is-latin1-not-url-safe.md) | `node`, `typescript` | `btoa` throws on chars > U+00FF and raw base64 breaks URLs; use TextEncoder + base64url |
 | [check-the-error-not-just-the-data](lessons/check-the-error-not-just-the-data.md) | `supabase` | Read the `error`, or a failure looks identical to an empty result |
 | [server-action-is-a-public-endpoint](lessons/server-action-is-a-public-endpoint.md) | `server-actions` | A Server Action is a public POST endpoint; re-validate on the server |
 | [compensate-after-external-call](lessons/compensate-after-external-call.md) | `stripe` | An external call after a state-changing write needs a compensating path |
