@@ -7,6 +7,16 @@ judgement or the import contract changed in a way that could alter results;
 Skills install once per machine, so only one version is ever active — versions
 exist for communication and rollback, not concurrent use.
 
+## [0.6.0] — 2026-08-22
+
+### Added
+- **Model provenance on every commit, PR, and issue.** A model authoring any of
+  these must name itself — provider, model, and version — via a `Model:` trailer
+  on commits and a matching `Model:` line at the foot of PR/issue bodies
+  (`Model: <Provider> <Model> (<model-id>)`). Codified as a hard rule in
+  `AGENTS.md` "Work records" and wired into the `explain-and-open-pr` procedure,
+  so contributions can be traced to a specific model and weighted for trust.
+
 ## [0.5.0] — 2026-08-21
 
 ### Changed
