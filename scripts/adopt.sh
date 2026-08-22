@@ -30,47 +30,54 @@ START_PREFIX="<!-- pas:start"
 # ---- detect stack -------------------------------------------------------------
 cd "$PROJECT"
 det=" "
-add() { det="${det}$1 "; }
+# Idempotent: a signal detected twice (e.g. supabase by dep and by directory)
+# is recorded once, so the stack line and matching stay clean.
+add() { case "$det" in *" $1 "*) ;; *) det="${det}$1 ";; esac; }
 
-# Collect all package.json and requirements.txt files (root + common monorepo subdirs)
-pkgs="package.json"
-reqs="pyproject.toml requirements.txt"
+# Collect all package.json and requirements.txt files (root + common monorepo
+# subdirs). Arrays, not space-joined strings, so a path is never re-split on
+# whitespace and each file is passed to grep as one argument.
+pkgs=(package.json)
+reqs=(pyproject.toml requirements.txt)
 for sub in frontend backend web app client server; do
-  [ -f "$sub/package.json" ] && pkgs="$pkgs $sub/package.json"
-  [ -f "$sub/pyproject.toml" ] && reqs="$reqs $sub/pyproject.toml"
-  [ -f "$sub/requirements.txt" ] && reqs="$reqs $sub/requirements.txt"
+  [ -f "$sub/package.json" ]     && pkgs+=("$sub/package.json")
+  [ -f "$sub/pyproject.toml" ]   && reqs+=("$sub/pyproject.toml")
+  [ -f "$sub/requirements.txt" ] && reqs+=("$sub/requirements.txt")
 done
 
 # Node / Python presence
-for p in $pkgs; do [ -f "$p" ] && { add node; break; }; done
-[ -f tsconfig.json ] && add typescript
-for sub in frontend backend web app client server .; do [ -f "$sub/tsconfig.json" ] && { add typescript; break; }; done
-for r in $reqs; do [ -f "$r" ] && { add python; break; }; done
+for p in "${pkgs[@]}"; do [ -f "$p" ] && { add node; break; }; done
+for sub in . frontend backend web app client server; do [ -f "$sub/tsconfig.json" ] && { add typescript; break; }; done
+for r in "${reqs[@]}"; do [ -f "$r" ] && { add python; break; }; done
 
 # JS deps (grep across all package.jsons)
-grep -qh '"react"' $pkgs 2>/dev/null && add react
-grep -qh '"next"' $pkgs 2>/dev/null && add nextjs
-{ [ -f src/app/layout.tsx ] || [ -f app/layout.tsx ] || [ -f frontend/app/layout.tsx ]; } && add nextjs-app-router
+grep -qh '"react"' "${pkgs[@]}" 2>/dev/null && add react
+grep -qh '"next"' "${pkgs[@]}" 2>/dev/null && add nextjs
+# app-router: check root and the same monorepo subdirs used for package.json,
+# not just src/app|app|frontend/app — otherwise web/, client/, etc. were missed.
+for base in . frontend backend web client server; do
+  { [ -f "$base/app/layout.tsx" ] || [ -f "$base/src/app/layout.tsx" ]; } && { add nextjs-app-router; break; }
+done
 grep -rqs 'use server' src app frontend/app frontend/src 2>/dev/null && add server-actions
-grep -qh '"tailwindcss": *"\^3' $pkgs 2>/dev/null && add tailwind-v3
-grep -qh '"tailwindcss": *"\^4' $pkgs 2>/dev/null && add tailwind-v4
+grep -qh '"tailwindcss": *"\^3' "${pkgs[@]}" 2>/dev/null && add tailwind-v3
+grep -qh '"tailwindcss": *"\^4' "${pkgs[@]}" 2>/dev/null && add tailwind-v4
 { [ -f components.json ] || [ -f frontend/components.json ]; } && add shadcn
-grep -qh '@supabase' $pkgs 2>/dev/null && add supabase
-grep -qh '"stripe"' $pkgs 2>/dev/null && add stripe
-grep -qh '"resend"' $pkgs 2>/dev/null && add resend
-grep -qh '"eslint"' $pkgs 2>/dev/null && add eslint
-grep -qh '@radix-ui' $pkgs 2>/dev/null && add radix
-grep -qh '"vitest"' $pkgs 2>/dev/null && add vitest
-grep -qh '@playwright/test' $pkgs 2>/dev/null && add playwright
-{ [ -f supabase ] || [ -d supabase ]; } 2>/dev/null && add supabase
+grep -qh '@supabase' "${pkgs[@]}" 2>/dev/null && add supabase
+grep -qh '"stripe"' "${pkgs[@]}" 2>/dev/null && add stripe
+grep -qh '"resend"' "${pkgs[@]}" 2>/dev/null && add resend
+grep -qh '"eslint"' "${pkgs[@]}" 2>/dev/null && add eslint
+grep -qh '@radix-ui' "${pkgs[@]}" 2>/dev/null && add radix
+grep -qh '"vitest"' "${pkgs[@]}" 2>/dev/null && add vitest
+grep -qh '@playwright/test' "${pkgs[@]}" 2>/dev/null && add playwright
+[ -d supabase ] && add supabase
 grep -rqs 'export const revalidate\|next: *{ *revalidate' src app frontend/app frontend/src 2>/dev/null && add isr
 [ -f vercel.json ] && add vercel
 { [ -f railway.json ] || [ -f Procfile ] || [ -f backend/Procfile ]; } && add railway
 
 # Python deps (grep across all requirements/pyproject)
-grep -qhsi 'fastapi' $reqs 2>/dev/null && add fastapi
-grep -qhsi 'sqlalchemy' $reqs 2>/dev/null && add sqlalchemy
-grep -qhsi 'google-genai\|google-generativeai' $reqs $pkgs 2>/dev/null && add gemini
+grep -qhsi 'fastapi' "${reqs[@]}" 2>/dev/null && add fastapi
+grep -qhsi 'sqlalchemy' "${reqs[@]}" 2>/dev/null && add sqlalchemy
+grep -qhsi 'google-genai\|google-generativeai' "${reqs[@]}" "${pkgs[@]}" 2>/dev/null && add gemini
 
 [ -d .github/workflows ] && add github-actions
 case "$(uname -s)" in MINGW*|MSYS*|CYGWIN*) add windows;; Darwin) add macos;; esac
