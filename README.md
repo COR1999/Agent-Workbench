@@ -68,6 +68,7 @@ scripts/
   install.sh       machine setup: install skills into the harness skills dirs
   adopt.sh         per-project import (idempotent)
   unadopt.sh       remove the import from a project
+  skill-usage-scan.py  count skill firings across every local agent store
 docs/
   ROADMAP.md                     what is being proved now + decisions made
   V0.1_DESIGN_SPECIFICATION.md   the design this was built to

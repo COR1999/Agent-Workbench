@@ -22,3 +22,6 @@ node_modules/
 
 # Scratch: research clones, adoption-test clones, raw archaeology dumps
 .research/
+
+# skill-usage scan output: raw prompts from client work; never commit
+.usage/
