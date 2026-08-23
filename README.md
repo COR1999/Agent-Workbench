@@ -126,6 +126,7 @@ context and does not belong here.
 | Lesson | Applies to | Claim |
 |---|---|---|
 | [backslash-escape-slop-breaks-tsx](lessons/backslash-escape-slop-breaks-tsx.md) | `react`, `typescript` | AI-generated TSX can contain literal `\``, `\${` escapes that break compilation; regex-strip before hand-editing |
+| [get-content-ansi-default-corrupts-utf8](lessons/get-content-ansi-default-corrupts-utf8.md) | `windows` | PS 5.1 `Get-Content` decodes BOM-less files as ANSI; round-tripping UTF-8 config through parse-mutate-write silently stores mojibake |
 | [check-lastexitcode-not-stderr](lessons/check-lastexitcode-not-stderr.md) | `windows` | PowerShell surfaces native-command stderr as error text; a mutating command can print scary output and still succeed |
 | [check-the-error-not-just-the-data](lessons/check-the-error-not-just-the-data.md) | `supabase` | Read the `error`, or a failure looks identical to an empty result |
 | [server-action-is-a-public-endpoint](lessons/server-action-is-a-public-endpoint.md) | `server-actions` | A Server Action is a public POST endpoint; re-validate on the server |
