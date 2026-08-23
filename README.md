@@ -2,8 +2,8 @@
 
 Portable engineering knowledge and agent capabilities — a small, evidence-based
 skill library an AI coding agent can carry from project to project. Designed from
-an archaeology of real repositories (`docs/research/`), not from generic
-best-practice lists.
+an archaeology of real repositories — its conclusions are distilled in
+`docs/V0.1_DESIGN_SPECIFICATION.md` — not from generic best-practice lists.
 
 **Scope:** a lessons ledger and nine skills (see the Skills table below).
 Deliberately small. See `docs/V0.1_DESIGN_SPECIFICATION.md`
@@ -11,18 +11,48 @@ for what is intentionally *not* here and why.
 
 **License:** [MIT](LICENSE).
 
-> The import tooling (`adopt.sh`, installed blocks) uses the internal marker
-> prefix `pas` / "personal-agent-system" — the project's original name. Renaming
-> that throughout is tracked as an issue; it touches already-adopted projects, so
-> it's a deliberate future pass, not a blind find-replace.
+> **This repo is public and sanitized for publication.** The *lessons* are
+> client-safe by design (generic claims, no client names). The skill test
+> fixtures (`skills/*/tests/*.md`) and `VALIDATION.md` files still quote real
+> repository history — that is what makes them trustworthy as validation — but
+> every source is anonymized or genericized: no client names, brands, or private
+> issue/PR numbers. `scripts/preflight-public.sh` enforces this mechanically.
+> See "Sanitization policy" below.
 
-> **This repo is private, and not yet safe to publish.** The *lessons* are
-> client-safe by design (generic claims, no client names). But the skill test
-> fixtures (`skills/*/tests/*.md`) and the `VALIDATION.md` files quote real
-> private repositories by name, verbatim source, business logic, and issue/PR
-> numbers — that is what makes them trustworthy as validation, and what makes
-> them unpublishable as-is. Before any public release, scrub or exclude
-> `skills/*/tests/` and `skills/*/VALIDATION.md`. See "Before publishing" below.
+## Working here (for the agent)
+
+If you are an AI agent operating in this repo, this is what it is *for* and how
+its loop works — read this before defaulting to your own habits.
+
+**Purpose.** This is a *carry-along toolkit*, not an app to build. Its value is
+that you reuse its skills and lessons across projects instead of re-deriving them
+every session. When a task matches a skill, use the skill.
+
+**1 — Use the skills.** `skills/` holds packaged, evidence-tested procedures (each
+with a `SKILL.md` and a `VALIDATION.md`). They trigger from their descriptions or
+by name; consult the matching one before improvising. A skill encodes a decision
+that was already litigated against real repositories — don't relitigate it blind.
+
+**2 — Keep learning (lessons).** When something surprises you or costs you time
+and the cause is *portable* (not specific to the project you're in), capture it
+with the `capture-lesson` skill into `lessons/`. The library only stays sharp if
+real friction feeds back into it. A lesson is conditional knowledge (true when its
+`applies-to` matches); a rule in `AGENTS.md` is unconditional.
+
+**3 — Report evidence when deployed.** After using a skill on real work, record
+whether it earned its place — where it fired, whether it helped, where it missed.
+This evidence is what promotes, sharpens, or *cuts* a skill: one that never pulls
+its weight is removed, not kept out of politeness. `docs/WAYFINDING.md` is the
+cross-session state this feeds.
+
+**4 — Dreaming (evolution).** Periodically the accumulated lessons and evidence
+are mined for patterns that should become a new skill, a CI check, or a cut. This
+is currently a deliberate, human-triggered pass — treat it as the intended
+direction, not a running automated loop (see `docs/CONTEXT-LOOP.md`).
+
+**5 — Sign your work.** Every commit, PR, and issue you author carries a `Model:`
+line naming you — provider, model, version (see `AGENTS.md` "Work records"). This
+is how a contribution is traced to a specific model and weighted for trust.
 
 ## Layout
 
@@ -97,14 +127,17 @@ context and does not belong here.
 
 | Lesson | Applies to | Claim |
 |---|---|---|
+| [opencode-explicit-env-apikey-blocks-credential-store](lessons/opencode-explicit-env-apikey-blocks-credential-store.md) | `windows`, `opencode` | An empty-resolving `apiKey: {env:X}` in a provider block suppresses the auth.json fallback with an opaque cookie-auth error; store keys in the credential store and keep config env-free |
 | [backslash-escape-slop-breaks-tsx](lessons/backslash-escape-slop-breaks-tsx.md) | `react`, `typescript` | AI-generated TSX can contain literal `\``, `\${` escapes that break compilation; regex-strip before hand-editing |
 | [btoa-is-latin1-not-url-safe](lessons/btoa-is-latin1-not-url-safe.md) | `node`, `typescript` | `btoa` throws on chars > U+00FF and raw base64 breaks URLs; use TextEncoder + base64url |
+| [get-content-ansi-default-corrupts-utf8](lessons/get-content-ansi-default-corrupts-utf8.md) | `windows` | PS 5.1 `Get-Content` decodes BOM-less files as ANSI; round-tripping UTF-8 config through parse-mutate-write silently stores mojibake |
+| [check-lastexitcode-not-stderr](lessons/check-lastexitcode-not-stderr.md) | `windows` | PowerShell surfaces native-command stderr as error text; a mutating command can print scary output and still succeed |
 | [check-the-error-not-just-the-data](lessons/check-the-error-not-just-the-data.md) | `supabase` | Read the `error`, or a failure looks identical to an empty result |
 | [server-action-is-a-public-endpoint](lessons/server-action-is-a-public-endpoint.md) | `server-actions` | A Server Action is a public POST endpoint; re-validate on the server |
 | [compensate-after-external-call](lessons/compensate-after-external-call.md) | `stripe` | An external call after a state-changing write needs a compensating path |
 | [next-build-fails-silently-stale-cache](lessons/next-build-fails-silently-stale-cache.md) | `nextjs` | `next build` exiting 1 with no error text usually means corrupted `.next`; clear it before touching config |
 | [next-dev-is-not-production](lessons/next-dev-is-not-production.md) | `nextjs` | `next dev` does not replicate static/ISR caching |
-| [next-og-imageresponse-windows](lessons/next-og-imageresponse-windows.md) | `nextjs`, `windows` | ~~`next/og`'s `ImageResponse` breaks `next build` on Windows~~ superseded 2026-08: no longer reproduces on Next 15 |
+| [next-og-imageresponse-windows](lessons/next-og-imageresponse-windows.md) | `nextjs`, `windows` | ~~`next/og`'s `ImageResponse` breaks `next build` on Windows~~ — unverified since 14.2.35; counter-evidence on Next 15 |
 | [node-modules-without-bin-is-broken](lessons/node-modules-without-bin-is-broken.md) | `node`, `windows` | `node_modules` present ≠ toolchain works; check `.bin` shims after any interrupted install |
 | [layout-metadata-leaks-to-all-pages](lessons/layout-metadata-leaks-to-all-pages.md) | `nextjs-app-router` | `canonical`/`og:url` in the root layout become every page's canonical; set them per page |
 | [stacked-pr-base-deletion-cascade](lessons/stacked-pr-base-deletion-cascade.md) | `github-actions` | Deleting a stacked PR's base branch auto-closes every PR above it and they can't be reopened |
@@ -198,20 +231,24 @@ nothing is dead weight.
 | `unverified-since <version>` | Was true; conditions may have changed | Inline; the text says to re-check |
 | `superseded by <slug>` | Proven false or replaced | Never inline. **Never delete** — why it was believed, and what disproved it, is itself the lesson. |
 
-## Before publishing
+## Sanitization policy
 
-This repo is currently private. If you ever make it public:
+This repo is public. The rules that keep it publishable:
 
-1. **Remove or sanitize `skills/*/tests/*.md`** — they contain verbatim source
-   and business logic from private repos.
-2. **Remove or sanitize `skills/*/VALIDATION.md`** — they name private repos and
-   real issue/PR numbers.
-3. **Re-check `docs/research/`** — the archaeology reports reference private repos
-   throughout; decide whether they go public or stay in a private branch.
-4. The `lessons/`, `templates/`, `scripts/`, `AGENTS.md`, and `SKILL.md` files are
-   already client-safe and can be published as-is.
+1. **No client-identifying material anywhere.** No client names, brand names,
+   product names, or private-repo issue/PR numbers. Evidence is cited against
+   anonymized sources ("a known fix set in `client-commerce`", "a tracking
+   issue") — the structure, verdicts, and metrics stay, the identity goes.
+2. **Raw archaeology reports are not in the public tree.** Their conclusions
+   live on in the design spec, the lessons, and each skill's `VALIDATION.md`.
+3. **Run `scripts/preflight-public.sh` before any push.** It greps the tree for
+   known identifying patterns and exits nonzero if any appear. If this repo ever
+   gains collaborators, wire it into CI rather than relying on memory.
+4. **New evidence follows the same rule at write time.** When a lesson or
+   validation doc is captured from client work, genericize it then — not in a
+   future scrub pass.
 
-The cleanest split, if you want a public face without losing the validation
-evidence: keep a private `main` and publish a `public` branch with steps 1–3
-applied. Do not try to scrub in place on the only copy — the real hunks are the
-proof the skills work, and you will want them.
+The import tooling (`adopt.sh`, installed blocks) uses the internal marker
+prefix `pas` / "personal-agent-system" — the project's original name. Renaming
+that throughout is tracked as an issue; it touches already-adopted projects, so
+it's a deliberate future pass, not a blind find-replace.

@@ -25,6 +25,23 @@ This machine is Windows 11 with Git Bash.
 - **"No issues found" is not an acceptable result on its own.** Report what was
   searched, where, and with what pattern. A null result must be distinguishable
   from having done nothing.
+- **Do not trust a document's claim about a mutable precondition — verify it
+  against the live source.** A README that says "this repo is private", a config
+  that says a flag is off, a comment that says a step ran: each can silently
+  drift from reality while still reading as authoritative. Before acting on such
+  a precondition, check the thing itself (`gh repo view --json visibility`, the
+  actual flag, the actual run), not the document that asserts it. A good
+  checklist guarded by a stale precondition still fails.
+
+## Public tree
+
+- **This repository is public and built from private client work. Genericize
+  client-identifying material at the moment you write it — never defer to a
+  later scrub pass.** Client, brand, and repository names, private issue/PR
+  numbers, and real file paths must not enter the tree in raw form; deferring
+  means the identifier ships. `scripts/preflight-public.sh` is the boundary
+  backstop, not a licence to write dirty and clean up later. When it catches a
+  new class of identifier, add its pattern there so the next catch is mechanical.
 
 ## Work records
 
@@ -33,6 +50,16 @@ This machine is Windows 11 with Git Bash.
   verified. Cross-reference related issues by number. Do not reduce a fix to a
   one-line subject — the body is the only durable account of why the code is the
   way it is.
+- **Every commit, PR, and issue a model authors must name the model that wrote
+  it — provider, model, and version — so contributions can be traced to a
+  specific model and compared for reliability over time.** Add a `Model:` trailer
+  to commit messages (last line, after the work-record body), and a matching
+  `Model:` line at the foot of every PR and issue body. Format:
+  `Model: <Provider> <Model> (<model-id>)`, e.g.
+  `Model: Anthropic Claude Opus 4.8 (claude-opus-4-8)`. Name the actual model
+  doing the work, never a placeholder or a default; a human-authored change
+  carries no such line. This is provenance, not attribution theatre — it exists
+  so the human can weight trust by which model produced the work.
 
 ## Lessons
 

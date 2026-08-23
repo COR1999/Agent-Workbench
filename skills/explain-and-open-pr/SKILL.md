@@ -22,10 +22,13 @@ follow, without sweeping in the human's other uncommitted work.
    and apply a patch of just those files there — the human's tree stays untouched.
    Confirm those files have no other divergence from the base first.
 2. **Commit with a work record.** Body states: how it was found, root cause, the
-   mechanism chosen and why, and how it was verified. Not a one-line subject.
+   mechanism chosen and why, and how it was verified. Not a one-line subject. End
+   the message with a **`Model:` trailer** naming the model that authored it —
+   `Model: <Provider> <Model> (<model-id>)` (see AGENTS.md "Work records").
 3. **PR body leads in plain English.** First section is **"In plain English"**:
    what it fixes, why it matters, what does *not* change — digestible, non-technical.
-   Then the technical detail below.
+   Then the technical detail below. Foot the PR body with the same **`Model:`**
+   line, so the reviewer can see which model produced the change.
 4. **Verify before claiming.** Run the project's typecheck/tests; state what ran,
    what passed, and what the environment structurally couldn't check. Never claim
    a verification you didn't execute.

@@ -1,0 +1,32 @@
+name: checks
+
+# Runs the repository's existing guard scripts on every push and PR to main.
+# This is deliberately not a "CI platform" — it is the gate that makes the
+# guards non-optional. A guard that depends on someone remembering to run it
+# is a wish, not a gate (see issue: "No CI/CD pipeline").
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  guards:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: skill invariants
+        run: bash tests/skill-invariants.sh
+
+      # preflight-public.sh lands with the sanitize-for-public-release PR.
+      # Guarded so this workflow merges independently; the check activates
+      # automatically once the script is present on main.
+      - name: public-tree preflight (no client identifiers)
+        run: |
+          if [ -f scripts/preflight-public.sh ]; then
+            bash scripts/preflight-public.sh
+          else
+            echo "scripts/preflight-public.sh not present yet — skipping until it lands on main."
+          fi

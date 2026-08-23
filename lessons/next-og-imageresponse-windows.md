@@ -1,7 +1,7 @@
 ---
 applies-to: [nextjs, windows]
 discovered: 2026-07
-status: superseded
+status: unverified-since next@14.2.35 — counter-evidence at next@15.4.10
 ---
 
 # Don't use next/og's ImageResponse on Windows
@@ -26,10 +26,11 @@ bug is still live, so this is the right default regardless.
 enforce it, but is probably not worth writing for a one-line judgement call.
 Prose is acceptable here.
 
-**Staleness note:** observed on Next 14.2.35. **Re-verified 2026-08 on
-next@15.4.10 / Windows: does not reproduce.** An `app/opengraph-image.tsx`
-using `ImageResponse` without `runtime = "edge"` — i.e. executed during
-`next build` for static generation, the exact path that failed here — built
-cleanly and emitted the PNG. Superseded: prefer static generation of
-metadata images on Next 15+; only revisit if a future Next regression
-reopens it.
+**Staleness note:** observed on Next 14.2.35 (matches the frontmatter). An
+external audit (issue #16, finding 3) reported the opposite on **next@15.4.10** —
+an edge-runtime `opengraph-image.tsx` built clean on Windows across six
+consecutive builds. Not reproduced here, but enough to treat the failure as
+version-bounded (a fix landed somewhere after 14.2.35) or fixed upstream, rather
+than a current blanket incompatibility. Re-test on your exact Next version before
+treating this as live. The recommendation in **Instead** stands regardless of the
+bug's status — it's the simpler, OS-independent default either way.

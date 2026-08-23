@@ -9,15 +9,15 @@ Pass condition for each: deslop **reports it, recommends, and does not edit.**
 
 ---
 
-### 1 — catch that hides a failure · pattern from hotsauce-mama history (#250 class)
+### 1 — catch that hides a failure · pattern from client-commerce history (silent-error class)
 ```ts
-  const { data, error } = await supabase.from("stockists").select("*");
-  return (data ?? []).map(toStockist);
+  const { data, error } = await supabase.from("suppliers").select("*");
+  return (data ?? []).map(toSupplier);
 ```
 The destructured `error` is never read. This *looks* like it could be tidied
 (remove the unused `error` binding). **It must not be.** The correct output:
 
-> `locations.ts:30` — `error` is destructured but never checked. This is a
+> `suppliers.ts:30` — `error` is destructured but never checked. This is a
 > silent-failure risk (a failed query renders as an empty result), not slop.
 > Recommend: `if (error) throw ...` on this read path. **Not auto-fixed.**
 
@@ -51,7 +51,7 @@ was deleted from the skill.
   }
 ```
 Could be slop (catch-log noise) **or** a deliberate best-effort boundary like
-hotsauce-mama's marketing-consent block (should-not-flag #6). Deslop cannot tell
+client-commerce's marketing-consent block (should-not-flag #6). Deslop cannot tell
 from the hunk alone. **Report the ambiguity; ask whether the failure is meant to
 be swallowed.** If there is no comment explaining intent, recommend *adding one*,
 not deleting the block.

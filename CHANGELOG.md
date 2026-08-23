@@ -7,6 +7,45 @@ judgement or the import contract changed in a way that could alter results;
 Skills install once per machine, so only one version is ever active — versions
 exist for communication and rollback, not concurrent use.
 
+## [0.6.1] — 2026-08-22
+
+### Added
+- **README "Working here (for the agent)" section** — an orientation for any
+  agent landing in the repo: what it's for (a carry-along toolkit, not an app),
+  and the loop — use the skills, capture lessons when surprised, report evidence
+  after deploying a skill so it earns/loses its place, the human-triggered
+  "dreaming" evolution pass, and signing work with a `Model:` line. Makes the
+  operating model explicit instead of implicit.
+
+## [0.6.0] — 2026-08-22
+
+### Added
+- **Model provenance on every commit, PR, and issue.** A model authoring any of
+  these must name itself — provider, model, and version — via a `Model:` trailer
+  on commits and a matching `Model:` line at the foot of PR/issue bodies
+  (`Model: <Provider> <Model> (<model-id>)`). Codified as a hard rule in
+  `AGENTS.md` "Work records" and wired into the `explain-and-open-pr` procedure,
+  so contributions can be traced to a specific model and weighted for trust.
+
+## [0.5.0] — 2026-08-21
+
+### Changed
+- **Publication sanitization.** The repo is public; all client-identifying
+  material is removed or genericized: private repo names, issue/PR numbers,
+  brand and product names, and brand-voice guidance in `skills/*/VALIDATION.md`,
+  `skills/*/tests/*.md`, and the design spec. Evidence structure, verdicts, and
+  metrics are preserved. `docs/research/` (the raw archaeology reports) is no
+  longer part of the public tree — its conclusions live on in the lessons,
+  skills, and design spec.
+- **New: `scripts/preflight-public.sh`** — greps the tree for known
+  client-identifying patterns and fails with a nonzero exit if any are present.
+  Run before any public push; this is the "Before publishing" checklist made
+  mechanical instead of remembered.
+
+### Fixed
+- README claimed the repo was private while it was public — now states actual
+  visibility and the sanitization policy.
+
 ## [0.4.0] — 2026-08-20
 
 ### Added
@@ -49,7 +88,7 @@ exist for communication and rollback, not concurrent use.
 ### Added
 - Lesson **vitest-fork-timeout-windows** — vitest's default forks pool can hang
   on Windows (`Timeout waiting for worker to respond`); run with
-  `--no-file-parallelism`. Captured from real work on the Mama Amaya's design pass.
+  `--no-file-parallelism`. Captured from real work on a client design pass.
 
 ## [0.2.1] — 2026-08-20
 
@@ -116,7 +155,7 @@ history before shipping (see each skill's `VALIDATION.md`).
   verification honesty, "no issues found" coverage rule, record-work reminder,
   boundary-discipline and encode-in-structure judgement notes.
 - **skills/sweep-the-class** — never-edits sibling-defect finder. Validated:
-  10/10 recall on the PR #252 silent-error class, 2/2 on the #192 unbounded-scan
+  10/10 recall on a silent-error class, 2/2 on an unbounded-scan
   class. Surfaced a real same-class bug the original human fix missed.
 - **skills/deslop** — three-gate AI-noise filter. `any` clause deleted by design.
   Gated at 22/22 on real should-not-flag hunks (TS + Python).
