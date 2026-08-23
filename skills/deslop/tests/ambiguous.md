@@ -23,7 +23,7 @@ The destructured `error` is never read. This *looks* like it could be tidied
 
 Removing the unused `error` binding would be the *wrong* fix and the dangerous one.
 
-### 2 — `any` at a JSON.parse trust boundary · kitchenapp `src/database/browserDB.ts:30`
+### 2 — `any` at a JSON.parse trust boundary · inventory-app `src/database/browserDB.ts:30`
 ```ts
         const parsed = JSON.parse(oldInvoices);
         const migrated = parsed.map((invoice: any) => ({
@@ -56,7 +56,7 @@ from the hunk alone. **Report the ambiguity; ask whether the failure is meant to
 be swallowed.** If there is no comment explaining intent, recommend *adding one*,
 not deleting the block.
 
-### 4 — TODO admitting a missing gap · fitnessTracker `src/services/workoutStorage.ts:34`
+### 4 — TODO admitting a missing gap · fitness-tracker `src/services/workoutStorage.ts:34`
 ```ts
   // Note: In a real app, you'd want error handling here
 ```

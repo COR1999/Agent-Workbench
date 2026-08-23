@@ -19,10 +19,22 @@ PATTERNS=(
   'jungle.?sauce'
   'stockist'
   'EXTREME HEAT'
+  # Repository names. Added 2026-08 after a sweep found EIGHT real repo names in
+  # the tracked tree while this list guarded only three brand strings: the guard
+  # was watching the wrong class of identifier. Genericized to client-reporting,
+  # client-site, client-site-2..4, invoicing-tool, fitness-tracker, inventory-app.
+  'senus'
+  'achara'
+  'pierogals'
+  'quadWeb'
+  'gscWeb'
+  'invoiceToSheet'
+  'fitnessTracker'
+  'kitchenapp'
 )
 
-# Private-repo issue/PR references. senus-board-report / kitchenapp are the
-# owner's own public repos — their numbers are allowed; anything else with a
+# Private-repo issue/PR references. The owner's own public repos' numbers are
+# allowed; anything else with a
 # bare "#NNN" next to a known private context is not expressible as a pattern,
 # which is exactly why rule 4 of the sanitization policy exists: genericize at
 # write time. These catch the historical classes.
@@ -34,13 +46,25 @@ have_rg() { command -v rg >/dev/null 2>&1; }
 
 matches=0
 
+# Scan TRACKED files only. The published surface is what git will push, not what
+# happens to sit in the working directory: scanning "." also read .git/ and the
+# gitignored .research/ clones of real client repos, so this script failed every
+# single time it ran. A check that always fails is a check nobody reads, which is
+# worse than no check - it was reported as "pre-existing false positive" and
+# waved through, twice, while eight real repository names sat in the tracked tree
+# unnoticed.
 run_search() {
   local label="$1" pattern="$2"
   local out
-  if have_rg; then
-    out=$(rg -i -n -e "$pattern" . --glob '!scripts/preflight-public.sh' 2>/dev/null)
+  if git rev-parse --git-dir >/dev/null 2>&1; then
+    out=$(git grep -I -n -i -E -e "$pattern" -- . ':(exclude)scripts/preflight-public.sh' 2>/dev/null)
+  elif have_rg; then
+    out=$(rg -i -n -e "$pattern" . --glob '!scripts/preflight-public.sh' \
+          --glob '!.git' --glob '!.research' 2>/dev/null)
   else
-    out=$(grep -rInE -i -e "$pattern" . 2>/dev/null | grep -v 'scripts/preflight-public.sh')
+    out=$(grep -rInE -i -e "$pattern" . 2>/dev/null \
+          | grep -v 'scripts/preflight-public.sh' \
+          | grep -v '^\./\.git/' | grep -v '^\./\.research/')
   fi
   if [ -n "$out" ]; then
     echo "FAIL [$label] pattern: $pattern"

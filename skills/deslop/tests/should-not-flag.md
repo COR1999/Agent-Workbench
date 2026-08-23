@@ -7,7 +7,7 @@ isn't. A single false positive here is a release blocker (design spec, gate on
 Step 3).
 
 Sources: `client-commerce` (TS; a private client e-commerce repo — names and
-issue refs anonymized for publication), `senus-board-report` (Python + TS).
+issue refs anonymized for publication), `client-reporting` (Python + TS).
 Paths are as of the reviewed commit; hunks otherwise verbatim.
 
 Gate 3 category legend: **INFO** = information a reader can't recover from code ·
@@ -125,7 +125,7 @@ Prevents a "consistency" refactor that would break auth context.
 ```
 Upper bounds are input-size defense, not verbosity. Removing `.max()` is a regression.
 
-### 13 — ORM-cascade provenance (INFO) · senus-board-report `backend/app/api/routes/documents/_core.py:280`
+### 13 — ORM-cascade provenance (INFO) · client-reporting `backend/app/api/routes/documents/_core.py:280`
 ```python
     # A bulk `delete(Document).where(...)` statement issues a direct SQL
     # DELETE that bypasses the ORM-level `cascade="all, delete-orphan"` on
@@ -139,7 +139,7 @@ Upper bounds are input-size defense, not verbosity. Removing `.max()` is a regre
 Explains why the code looks less efficient than a bulk delete. Deleting the
 comment invites the "optimization" that reintroduces the bug.
 
-### 14 — error visibility at a boundary (SAFETY) · senus-board-report `backend/app/api/routes/documents/_core.py:45`
+### 14 — error visibility at a boundary (SAFETY) · client-reporting `backend/app/api/routes/documents/_core.py:45`
 ```python
     except HTTPException:
         raise
@@ -150,7 +150,7 @@ comment invites the "optimization" that reintroduces the bug.
 Re-raises HTTPException untouched, logs the unexpected, surfaces a clean 500.
 This is correct boundary handling — not a swallow to be trimmed.
 
-### 15 — None-vs-zero reasoning (INFO+SAFETY) · senus-board-report `backend/app/api/routes/metrics/dashboard_summary.py:300`
+### 15 — None-vs-zero reasoning (INFO+SAFETY) · client-reporting `backend/app/api/routes/metrics/dashboard_summary.py:300`
 ```python
         # Narrative-extracted, no prior-period comparative exists for this
         # field -- change/trend are always 0/neutral, never a fabricated
@@ -161,32 +161,32 @@ This is correct boundary handling — not a swallow to be trimmed.
 ```
 Explains why an obvious reuse is deliberately avoided. Pure information.
 
-### 16 — integrity comment (INFO) · senus-board-report `backend/app/api/routes/metrics/_shared.py:46`
+### 16 — integrity comment (INFO) · client-reporting `backend/app/api/routes/metrics/_shared.py:46`
 ```python
 # must not silently become "the" board-facing number just because it
 ```
 Guards a domain invariant about which figure is authoritative.
 
-### 17 — domain-logic reason (INFO) · senus-board-report `backend/app/services/financial_metrics_extractor/_period_detection.py:63`
+### 17 — domain-logic reason (INFO) · client-reporting `backend/app/services/financial_metrics_extractor/_period_detection.py:63`
 ```python
         # because both half-year and full-year filings compare like-for-like
 ```
 Explains a comparison rule that the code alone doesn't justify.
 
-### 18 — baseline-shape note (INFO) · senus-board-report `backend/app/services/report_service.py:345`
+### 18 — baseline-shape note (INFO) · client-reporting `backend/app/services/report_service.py:345`
 ```python
             # baseline would otherwise still be {"value": N} dicts here.
 ```
 Documents a data-shape hazard a maintainer would otherwise trip on.
 
-### 19 — circular-import resolution (INFO+INTENT) · senus-board-report `backend/app/api/routes/documents/__init__.py:238`
+### 19 — circular-import resolution (INFO+INTENT) · client-reporting `backend/app/api/routes/documents/__init__.py:238`
 ```python
 # router instead. Imported after the definitions above so that, by the
 # ... the standard pattern for resolving an otherwise-circular package/
 ```
 The unusual import position is deliberate; the comment is why it can't move.
 
-### 20 — comparative-purity reason (INFO) · senus-board-report `backend/app/services/report_service.py:292`
+### 20 — comparative-purity reason (INFO) · client-reporting `backend/app/services/report_service.py:292`
 ```python
                 # document's real FY2024 comparative, purely because nothing
 ```
@@ -199,7 +199,7 @@ Explains an intentional data choice; removing it loses the rationale.
 Early-return guard, not dead defensiveness — pairs with #9. Removing it crashes
 previews/tests.
 
-### 22 — text-parsing suffix reason (INFO) · senus-board-report `backend/app/services/financial_metrics_extractor/_text_parsing.py:113`
+### 22 — text-parsing suffix reason (INFO) · client-reporting `backend/app/services/financial_metrics_extractor/_text_parsing.py:113`
 ```python
     # suffix position (e.g. "FY2028", "EBITDA") cannot match because the
 ```
