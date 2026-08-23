@@ -146,6 +146,38 @@ this works without the scanner having to guess.
 made *sharper*, never *broader*. No new trigger verb enters a description
 unless a real session was missed because it was absent.
 
+## Verdicts from the first classification pass (2026-08-23)
+
+Reading the 24 rows, rather than scoring them, exposed a distinction the counts
+hid: **what occasioned the firing**. Three kinds:
+
+- **task** — the human described ordinary work and the model chose the skill. This
+  is the only kind that supports the thesis.
+- **library-invoked** — the human pointed at the workbench ("use agent workbench
+  methods", "report back to agentworkbench with any new lessons"). Unprompted by
+  skill *name*, but not autonomous routing.
+- **batch** — "do all", accepting a list the model had already proposed.
+
+| Skill | Firings | Task-routed | Outcome | Verdict |
+|---|---|---|---|---|
+| `explain-and-open-pr` | 5 | **5** | 4 artifact, 1 pushback | **KEEP** — strongest in the library |
+| `capture-lesson` | 6 | 3 | 2 artifact, 2 none, 1 pushback | **KEEP** |
+| `sweep-the-class` | 3 | **0** | no signature | **TUNE** — only ever fires when pointed at |
+| `deslop` | 2 | **0** | 1 pushback | **TUNE** — batch only, and pushed back on |
+| `design-handbook` | 1 | 1 | no artifact | **THIN** — one firing, nothing produced |
+| `tdd` | 0 | 0 | 0 of 3 chances | **TUNE or CUT** — a judgement, not a calculation |
+| `grilling`, `agentic-vocabulary`, `handoff` | 4 | 1 | — | **Exempt** — human-invoked by design |
+
+**The finding that matters:** `sweep-the-class` and `deslop` have never once been
+routed from ordinary work. Every firing came from the human naming the library or
+approving a list. They are not being reached by the descriptions; they are being
+reached by you remembering they exist. That is precisely the failure this project
+exists to detect, and it is invisible in the raw firing counts — both look healthy
+at 3 and 2 firings.
+
+`explain-and-open-pr` is the counter-example that keeps the thesis alive: five
+firings, all five from ordinary work, four produced a commit.
+
 ## The trial (#12)
 
 1. Rewrite descriptions **only where the measured data shows a problem**. The
