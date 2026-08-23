@@ -70,30 +70,48 @@ ALIASES = {
 
 # Wording that suggests the human rejected what the skill did. Crude on purpose:
 # it flags a row for reading, it does not decide anything.
+# Tool names that mean the session actually changed files. Used to tell a session
+# that produced work from one that only read - only the former could have wanted a
+# PR opened for it.
+EDIT_TOOLS = {"Edit", "Write", "MultiEdit", "NotebookEdit"}
+OPENCODE_EDIT_TOOLS = {"edit", "write", "patch"}
+
 PUSHBACK = [
     "no ", "nope", "don't", "dont ", "stop", "undo", "revert", "wrong",
     "that's not", "thats not", "not what i", "instead", "actually no",
 ]
 
 
-def artifact_lessons(paths, commits):
-    return any(p.startswith("lessons/") for p in paths)
+# Signatures take the whole change set: touched paths, ADDED paths, commit count,
+# and whether the session itself edited files. The first version used touched
+# paths and a bare commit count, which over-credited opportunities badly - any
+# commit at all counted as a chance for explain-and-open-pr, and brushing an
+# existing test file counted as a chance for tdd.
 
 
-def artifact_commit(paths, commits):
-    return commits > 0
+def artifact_lessons(change):
+    # A lesson is a NEW file. Editing an existing one is not capture-lesson's job.
+    return any(p.startswith("lessons/") for p in change["added"])
 
 
-def artifact_html(paths, commits):
-    return any(p.lower().endswith(".html") for p in paths)
+def artifact_commit(change):
+    # Only a session that actually edited files could have wanted a PR. A commit
+    # during a read-only session is the human's own work, not a missed skill.
+    return change["commits"] > 0 and change["session_edited"]
 
 
-def artifact_handoff(paths, commits):
-    return any("handoff" in p.lower() for p in paths)
+def artifact_html(change):
+    return any(p.lower().endswith(".html") for p in change["added"])
 
 
-def artifact_test(paths, commits):
-    low = [p.lower() for p in paths]
+def artifact_handoff(change):
+    return any("handoff" in p.lower() for p in change["added"])
+
+
+def artifact_test(change):
+    # A NEW test file. Touching an existing test is ordinary maintenance and is
+    # not evidence that test-first work was on the table.
+    low = [p.lower() for p in change["added"]]
     return any("test" in p or ".spec." in p for p in low)
 
 
@@ -165,7 +183,7 @@ def git_changes(repo, start_epoch, end_epoch):
     try:
         out = subprocess.run(
             ["git", "-C", str(path), "log", "--since=" + since, "--until=" + until,
-             "--name-only", "--pretty=format:%H"],
+             "--name-status", "--pretty=format:%H"],
             capture_output=True, text=True, timeout=30)
     except (OSError, subprocess.SubprocessError):
         _git_cache[key] = None
@@ -173,21 +191,27 @@ def git_changes(repo, start_epoch, end_epoch):
     if out.returncode != 0:
         _git_cache[key] = None
         return None
-    paths, commits = set(), 0
+    paths, added, commits = set(), set(), 0
     for line in out.stdout.splitlines():
         line = line.strip()
         if not line:
             continue
         if re.fullmatch(r"[0-9a-f]{40}", line):
             commits += 1
-        else:
-            paths.add(line)
-    result = (sorted(paths), commits)
+            continue
+        parts = line.split("\t")
+        if len(parts) < 2:
+            continue
+        status, target = parts[0], parts[-1]
+        paths.add(target)
+        if status.startswith("A"):
+            added.add(target)
+    result = {"paths": sorted(paths), "added": sorted(added), "commits": commits}
     _git_cache[key] = result
     return result
 
 
-def outcome_for(skill, repo, epoch, window_hours, next_user):
+def outcome_for(skill, repo, epoch, window_hours, next_user, session_edited):
     """Mechanical evidence about whether the firing helped. Never a verdict."""
     if next_user:
         low = next_user.lower()
@@ -198,11 +222,11 @@ def outcome_for(skill, repo, epoch, window_hours, next_user):
         return "no-signature"
     if not epoch:
         return "no-timestamp"
-    changes = git_changes(repo, epoch, epoch + window_hours * 3600)
-    if changes is None:
+    change = git_changes(repo, epoch, epoch + window_hours * 3600)
+    if change is None:
         return "repo-unavailable"
-    paths, commits = changes
-    return "artifact" if check(paths, commits) else "no-artifact"
+    change = dict(change, session_edited=session_edited)
+    return "artifact" if check(change) else "no-artifact"
 
 
 def iso_to_epoch(value):
@@ -214,14 +238,15 @@ def iso_to_epoch(value):
         return 0
 
 
-def record_session(session_info, key, repo, epoch, skill=None):
+def record_session(session_info, key, repo, epoch, skill=None, edited=False):
     """Accumulate a session's repo, time span, and the skills that fired in it.
 
     This is what makes MISSES visible: a session whose artifact appeared but whose
     skill never fired is an opportunity the library did not take.
     """
     info = session_info.setdefault(key, {
-        "repo": repo or "", "start": None, "end": None, "skills": set()})
+        "repo": repo or "", "start": None, "end": None, "skills": set(),
+        "edited": False})
     if repo and not info["repo"]:
         info["repo"] = repo
     if epoch:
@@ -229,6 +254,8 @@ def record_session(session_info, key, repo, epoch, skill=None):
         info["end"] = epoch if info["end"] is None else max(info["end"], epoch)
     if skill:
         info["skills"].add(skill)
+    if edited:
+        info["edited"] = True
 
 
 def find_misses(session_info):
@@ -248,14 +275,14 @@ def find_misses(session_info):
         repo, start, end = info["repo"], info["start"], info["end"]
         if not repo or start is None:
             continue
-        changes = git_changes(repo, start, (end or start) + 1)
-        if not changes:
+        change = git_changes(repo, start, (end or start) + 1)
+        if not change:
             continue
-        paths, commits = changes
+        change = dict(change, session_edited=info["edited"])
         for skill, check in ARTIFACTS.items():
             if skill in info["skills"]:
                 continue
-            if check(paths, commits):
+            if check(change):
                 misses[skill] += 1
     return misses
 
@@ -271,7 +298,7 @@ def scan_claude(rows, sessions, stores, window_hours, session_info):
         project = path.parent.name
         session = path.stem
         sessions[("claude-family", project)].add(session)
-        timeline, cwd = [], ""
+        timeline, cwd, edited = [], "", False
         try:
             with path.open(encoding="utf-8", errors="replace") as handle:
                 for line in handle:
@@ -299,7 +326,11 @@ def scan_claude(rows, sessions, stores, window_hours, session_info):
                     for block in content:
                         if not isinstance(block, dict):
                             continue
-                        if block.get("type") == "tool_use" and block.get("name") == "Skill":
+                        if block.get("type") != "tool_use":
+                            continue
+                        if block.get("name") in EDIT_TOOLS:
+                            edited = True
+                        if block.get("name") == "Skill":
                             skill = (block.get("input") or {}).get("skill", "?")
                             timeline.append(("skill", skill, stamp, cwd))
         except OSError:
@@ -309,7 +340,7 @@ def scan_claude(rows, sessions, stores, window_hours, session_info):
         for kind, value, stamp, where in timeline:
             record_session(session_info, ("claude-family", session), where,
                            iso_to_epoch(stamp),
-                           value if kind == "skill" else None)
+                           value if kind == "skill" else None, edited)
 
         for index, (kind, value, stamp, where) in enumerate(timeline):
             if kind != "skill":
@@ -324,7 +355,8 @@ def scan_claude(rows, sessions, stores, window_hours, session_info):
                 "time": stamp,
                 "skill": value,
                 "guess": named_by_user(value, before),
-                "outcome": outcome_for(value, where, epoch, window_hours, after),
+                "outcome": outcome_for(value, where, epoch, window_hours, after,
+                                       edited),
                 "user_text": snippet(before),
                 "next_user": snippet(after),
             })
@@ -362,6 +394,7 @@ def scan_opencode(rows, sessions, stores, window_hours, session_info):
             user_message_ids.add(mid)
 
     user_text_by_session = defaultdict(list)
+    edited_sessions = set()
     skill_parts = []
     for sid, mid, created, data in con.execute(
             "select session_id, message_id, time_created, data from part "
@@ -378,8 +411,14 @@ def scan_opencode(rows, sessions, stores, window_hours, session_info):
             state = payload.get("state") or {}
             if isinstance(state, dict):
                 fired = (state.get("input") or {}).get("name")
+        if payload.get("type") == "tool" and payload.get("tool") in OPENCODE_EDIT_TOOLS:
+            edited_sessions.add(sid)
         record_session(session_info, ("opencode", sid), directories.get(sid),
                        (created or 0) / 1000.0, fired)
+
+    for sid in edited_sessions:
+        record_session(session_info, ("opencode", sid), directories.get(sid),
+                       0, None, True)
 
     for sid, created, payload in skill_parts:
         state = payload.get("state") or {}
@@ -401,7 +440,8 @@ def scan_opencode(rows, sessions, stores, window_hours, session_info):
             "skill": skill,
             "guess": named_by_user(skill, user_text),
             "outcome": outcome_for(skill, directories.get(sid), epoch,
-                                   window_hours, next_user),
+                                   window_hours, next_user,
+                                   sid in edited_sessions),
             "user_text": snippet(user_text),
             "next_user": snippet(next_user),
         })

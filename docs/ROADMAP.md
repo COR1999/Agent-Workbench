@@ -82,28 +82,36 @@ The gap above is now partly closed by inverting the artifact test: a session whe
 a skill's artifact appeared but the skill never fired is an **opportunity not
 taken**. Measured 2026-08-23:
 
+Measured 2026-08-23, after the signatures were sharpened (see below):
+
 | Skill | Fired | Missed | Took |
 |---|---|---|---|
-| `explain-and-open-pr` | 5 | 17 | 23% of its chances |
-| `tdd` | 0 | 13 | 0% |
+| `explain-and-open-pr` | 5 | 10 | 33% of its chances |
 | `capture-lesson` | 6 | 5 | 55% |
+| `tdd` | 0 | 3 | 0% |
 | `handoff` | 1 | 1 | 50% |
 | `design-handbook` | 1 | 0 | 100% |
 
-**This reverses the reading of `tdd`.** Zero firings looked like "never needed" and
-made it the obvious CUT. It had 13 opportunities and took none: that is a routing
-failure, not absence of demand. `tdd` becomes the clearest TUNE candidate in the
-library, and the one skill whose description the rewrite should touch first.
+**The sharpening changed the conclusion, which is why it was done before acting.**
+The first pass used loose signatures — any commit counted as a chance for
+`explain-and-open-pr`, and touching any path containing "test" counted as a chance
+for `tdd`. That reported 17 and 13 misses. Requiring an *added* file, and
+requiring the session to have actually edited something before a commit counts,
+gives 10 and 3. `tdd`'s apparent gap was 77% artefact of the measurement.
 
-`explain-and-open-pr` is the strongest skill by outcome (5 of 5 produced a commit)
-and simultaneously the biggest gap by volume (17 missed). Firing more is justified
-*here*, on evidence — not as a general aim.
+Where that leaves each:
 
-Read these as **upper bounds on misses, not counts**. The signatures are loose:
-"any commit in the session" over-credits `explain-and-open-pr` with opportunities
-the human never wanted a PR for, and "a path containing test" counts any brush
-with a test file as a chance for `tdd`. Sharpening the signatures is the next
-improvement to the measurement itself.
+- **`explain-and-open-pr`** — strongest by outcome (5 of 5 firings produced a
+  commit) and still the largest gap (10 missed). Firing more is justified *here*,
+  on evidence, not as a general aim.
+- **`tdd`** — 0 of 3. Still a routing failure rather than absence of demand, but
+  the case is thin. KEEP-or-CUT on 3 data points is a judgement, not a
+  calculation, and should be called as one.
+- **`capture-lesson`** at 55% and **`handoff`** at 50% are working acceptably.
+  Pushing them higher re-creates the metric hazard above.
+
+Still **upper bounds, not counts**. A commit made by hand inside an agent session
+is indistinguishable from one the agent should have opened a PR for.
 
 Still invisible: a miss for `sweep-the-class`, `grilling`, `deslop` or
 `agentic-vocabulary`. They leave no trace whether they fire or not, so for them
