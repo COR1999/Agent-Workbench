@@ -32,6 +32,15 @@ This machine is Windows 11 with Git Bash.
   a precondition, check the thing itself (`gh repo view --json visibility`, the
   actual flag, the actual run), not the document that asserts it. A good
   checklist guarded by a stale precondition still fails.
+- **An empty delegated result is a failure of delegation, not a null finding.**
+  When a subagent or a delegated task returns no content, treat the delegation
+  itself as having failed — investigate or redo the work with direct tools. Never
+  carry it forward as "searched, found nothing": that is the same lie as a claimed
+  verification.
+- **An edit that succeeded is not an edit that matched.** Fuzzy matching can apply
+  an `old_string` containing lines that are not present verbatim in the file. Read
+  back the touched region after any edit whose match you did not verify —
+  especially one that surprised you by succeeding — before building on it.
 
 ## Public tree
 
