@@ -214,7 +214,53 @@ def iso_to_epoch(value):
         return 0
 
 
-def scan_claude(rows, sessions, stores, window_hours):
+def record_session(session_info, key, repo, epoch, skill=None):
+    """Accumulate a session's repo, time span, and the skills that fired in it.
+
+    This is what makes MISSES visible: a session whose artifact appeared but whose
+    skill never fired is an opportunity the library did not take.
+    """
+    info = session_info.setdefault(key, {
+        "repo": repo or "", "start": None, "end": None, "skills": set()})
+    if repo and not info["repo"]:
+        info["repo"] = repo
+    if epoch:
+        info["start"] = epoch if info["start"] is None else min(info["start"], epoch)
+        info["end"] = epoch if info["end"] is None else max(info["end"], epoch)
+    if skill:
+        info["skills"].add(skill)
+
+
+def find_misses(session_info):
+    """Sessions where a skill's own artifact appeared but the skill never fired.
+
+    Only the skills with an artifact signature can be checked this way. For
+    sweep-the-class, grilling, deslop and agentic-vocabulary a miss is
+    undetectable by machine — they leave nothing behind either way — so they are
+    absent here rather than reported as zero.
+
+    Caveat kept deliberately visible: an artifact committed by hand during a
+    session, with no agent involvement, counts as a miss. On a solo repo that is
+    usually the right reading; it is still a guess, not a fact.
+    """
+    misses = Counter()
+    for info in session_info.values():
+        repo, start, end = info["repo"], info["start"], info["end"]
+        if not repo or start is None:
+            continue
+        changes = git_changes(repo, start, (end or start) + 1)
+        if not changes:
+            continue
+        paths, commits = changes
+        for skill, check in ARTIFACTS.items():
+            if skill in info["skills"]:
+                continue
+            if check(paths, commits):
+                misses[skill] += 1
+    return misses
+
+
+def scan_claude(rows, sessions, stores, window_hours, session_info):
     """Claude-family JSONL: ~/.claude/projects/<project>/<session>.jsonl"""
     if not CLAUDE_PROJECTS.is_dir():
         stores.append(("claude-family jsonl", str(CLAUDE_PROJECTS), "MISSING", 0))
@@ -260,6 +306,11 @@ def scan_claude(rows, sessions, stores, window_hours):
             unreadable += 1
             continue
 
+        for kind, value, stamp, where in timeline:
+            record_session(session_info, ("claude-family", session), where,
+                           iso_to_epoch(stamp),
+                           value if kind == "skill" else None)
+
         for index, (kind, value, stamp, where) in enumerate(timeline):
             if kind != "skill":
                 continue
@@ -281,7 +332,7 @@ def scan_claude(rows, sessions, stores, window_hours):
     stores.append(("claude-family jsonl", str(CLAUDE_PROJECTS), status, len(files)))
 
 
-def scan_opencode(rows, sessions, stores, window_hours):
+def scan_opencode(rows, sessions, stores, window_hours, session_info):
     """OpenCode: a SQLite database, not transcripts. Opened read-only."""
     if not OPENCODE_DB.exists():
         stores.append(("opencode sqlite", str(OPENCODE_DB), "MISSING", 0))
@@ -319,10 +370,16 @@ def scan_opencode(rows, sessions, stores, window_hours):
             payload = json.loads(data)
         except (json.JSONDecodeError, TypeError):
             continue
+        fired = None
         if payload.get("type") == "text" and mid in user_message_ids:
             user_text_by_session[sid].append((created or 0, payload.get("text", "")))
         elif payload.get("type") == "tool" and payload.get("tool") == "skill":
             skill_parts.append((sid, created or 0, payload))
+            state = payload.get("state") or {}
+            if isinstance(state, dict):
+                fired = (state.get("input") or {}).get("name")
+        record_session(session_info, ("opencode", sid), directories.get(sid),
+                       (created or 0) / 1000.0, fired)
 
     for sid, created, payload in skill_parts:
         state = payload.get("state") or {}
@@ -363,8 +420,9 @@ def main():
 
     rows, stores = [], []
     sessions = defaultdict(set)
-    scan_claude(rows, sessions, stores, args.window_hours)
-    scan_opencode(rows, sessions, stores, args.window_hours)
+    session_info = {}
+    scan_claude(rows, sessions, stores, args.window_hours, session_info)
+    scan_opencode(rows, sessions, stores, args.window_hours, session_info)
 
     print("STORES CHECKED  (MISSING is not a zero - it is unmeasured)")
     for name, path, status, count in stores:
@@ -400,6 +458,18 @@ def main():
         outcomes = per_outcome[skill]
         parts = ", ".join("%s=%d" % (k, v) for k, v in outcomes.most_common())
         print("  %-24s %s" % (skill, parts))
+
+    print("\nCOULD IT HAVE FIRED AND DIDN'T?   (the skill's artifact appeared in a "
+          "session where it never fired)")
+    misses = find_misses(session_info)
+    for skill in sorted(ARTIFACTS, key=lambda k: -(per_skill[k] + misses[k])):
+        fired, missed = per_skill[skill], misses[skill]
+        total = fired + missed
+        rate = ("%d%%" % round(100.0 * fired / total)) if total else "n/a"
+        print("  %-24s fired=%-3d missed=%-3d took %s of its chances"
+              % (skill, fired, missed, rate))
+    print("  (sweep-the-class, grilling, deslop and agentic-vocabulary leave no "
+          "trace either way - for them a miss is undetectable by machine, not zero)")
 
     print("\nBY STORE")
     for store, count in Counter(row["store"] for row in rows).most_common():

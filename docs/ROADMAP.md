@@ -76,10 +76,38 @@ Three limits, stated so the numbers are not over-read:
   working exactly as specified. Only reading the row can tell.
 - **Attribution is loose.** Any commit in the window counts; on a solo repo that
   is acceptable, on a shared one it would not be.
-- **Missed opportunities are invisible.** The scanner counts firings, never the
-  sessions where a skill *should* have fired and didn't. A skill with 3 firings
-  from 3 chances is indistinguishable from one with 3 from 50. This is the
-  weakest point in the whole trial design and nothing here fixes it.
+### Could it have fired and didn't?
+
+The gap above is now partly closed by inverting the artifact test: a session where
+a skill's artifact appeared but the skill never fired is an **opportunity not
+taken**. Measured 2026-08-23:
+
+| Skill | Fired | Missed | Took |
+|---|---|---|---|
+| `explain-and-open-pr` | 5 | 17 | 23% of its chances |
+| `tdd` | 0 | 13 | 0% |
+| `capture-lesson` | 6 | 5 | 55% |
+| `handoff` | 1 | 1 | 50% |
+| `design-handbook` | 1 | 0 | 100% |
+
+**This reverses the reading of `tdd`.** Zero firings looked like "never needed" and
+made it the obvious CUT. It had 13 opportunities and took none: that is a routing
+failure, not absence of demand. `tdd` becomes the clearest TUNE candidate in the
+library, and the one skill whose description the rewrite should touch first.
+
+`explain-and-open-pr` is the strongest skill by outcome (5 of 5 produced a commit)
+and simultaneously the biggest gap by volume (17 missed). Firing more is justified
+*here*, on evidence — not as a general aim.
+
+Read these as **upper bounds on misses, not counts**. The signatures are loose:
+"any commit in the session" over-credits `explain-and-open-pr` with opportunities
+the human never wanted a PR for, and "a path containing test" counts any brush
+with a test file as a chance for `tdd`. Sharpening the signatures is the next
+improvement to the measurement itself.
+
+Still invisible: a miss for `sweep-the-class`, `grilling`, `deslop` or
+`agentic-vocabulary`. They leave no trace whether they fire or not, so for them
+this method reports nothing rather than zero.
 
 ## Lesson evidence
 
