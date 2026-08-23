@@ -57,6 +57,30 @@ split in two:
   unprompted, and kept vs redirected. Both are needed — see the metric hazard below.
 - **The denominator is a session.**
 
+### Did it help?
+
+Firing is not helping. Some skills leave their own trace in git, so the scanner
+checks whether that trace appeared within a window of the firing:
+`capture-lesson` should produce a file under `lessons/`, `explain-and-open-pr` a
+commit, `design-handbook` an HTML file, `handoff` a handoff file, `tdd` a test.
+
+Skills that write nothing **by design** — `sweep-the-class` never edits,
+`grilling` never builds, `agentic-vocabulary` is a lookup — report
+`no-signature`. They are judged by reading, and the tool says so rather than
+scoring them zero.
+
+Three limits, stated so the numbers are not over-read:
+
+- **A refusal looks like a failure.** `capture-lesson` is *supposed* to decline
+  when the four-part test fails. A firing with no lesson file may be the skill
+  working exactly as specified. Only reading the row can tell.
+- **Attribution is loose.** Any commit in the window counts; on a solo repo that
+  is acceptable, on a shared one it would not be.
+- **Missed opportunities are invisible.** The scanner counts firings, never the
+  sessions where a skill *should* have fired and didn't. A skill with 3 firings
+  from 3 chances is indistinguishable from one with 3 from 50. This is the
+  weakest point in the whole trial design and nothing here fixes it.
+
 ## Lesson evidence
 
 A lesson never "fires" — it is inert text pasted into a project's `AGENTS.md`, so
