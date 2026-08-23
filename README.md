@@ -5,8 +5,8 @@ skill library an AI coding agent can carry from project to project. Designed fro
 an archaeology of real repositories — its conclusions are distilled in
 `docs/V0.1_DESIGN_SPECIFICATION.md` — not from generic best-practice lists.
 
-**Scope:** a lessons ledger and three skills (`sweep-the-class`, `deslop`,
-`capture-lesson`). Deliberately small. See `docs/V0.1_DESIGN_SPECIFICATION.md`
+**Scope:** a lessons ledger and nine skills (see the Skills table below).
+Deliberately small. See `docs/V0.1_DESIGN_SPECIFICATION.md`
 for what is intentionally *not* here and why.
 
 **License:** [MIT](LICENSE).
@@ -63,13 +63,15 @@ VERSION            the workbench version, stamped into projects on import
 CHANGELOG.md       what changed between versions
 lessons/           conditional knowledge — true when applies-to matches
 templates/         lesson.md, project-AGENTS.md
-skills/            sweep-the-class, deslop (each SKILL.md + VALIDATION.md)
+skills/            nine skills (each SKILL.md; validated ones + VALIDATION.md)
 scripts/
   install.sh       machine setup: install skills into the harness skills dirs
   adopt.sh         per-project import (idempotent)
   unadopt.sh       remove the import from a project
 docs/
   V0.1_DESIGN_SPECIFICATION.md   the design this was built to
+  research/                       the 16-report archaeology it came from
+  .research/                      gitignored: plugin/research folders + raw dumps
 ```
 
 ## Versioning
@@ -127,6 +129,7 @@ context and does not belong here.
 |---|---|---|
 | [opencode-explicit-env-apikey-blocks-credential-store](lessons/opencode-explicit-env-apikey-blocks-credential-store.md) | `windows`, `opencode` | An empty-resolving `apiKey: {env:X}` in a provider block suppresses the auth.json fallback with an opaque cookie-auth error; store keys in the credential store and keep config env-free |
 | [backslash-escape-slop-breaks-tsx](lessons/backslash-escape-slop-breaks-tsx.md) | `react`, `typescript` | AI-generated TSX can contain literal `\``, `\${` escapes that break compilation; regex-strip before hand-editing |
+| [btoa-is-latin1-not-url-safe](lessons/btoa-is-latin1-not-url-safe.md) | `node`, `typescript` | `btoa` throws on chars > U+00FF and raw base64 breaks URLs; use TextEncoder + base64url |
 | [get-content-ansi-default-corrupts-utf8](lessons/get-content-ansi-default-corrupts-utf8.md) | `windows` | PS 5.1 `Get-Content` decodes BOM-less files as ANSI; round-tripping UTF-8 config through parse-mutate-write silently stores mojibake |
 | [check-lastexitcode-not-stderr](lessons/check-lastexitcode-not-stderr.md) | `windows` | PowerShell surfaces native-command stderr as error text; a mutating command can print scary output and still succeed |
 | [check-the-error-not-just-the-data](lessons/check-the-error-not-just-the-data.md) | `supabase` | Read the `error`, or a failure looks identical to an empty result |
@@ -134,8 +137,10 @@ context and does not belong here.
 | [compensate-after-external-call](lessons/compensate-after-external-call.md) | `stripe` | An external call after a state-changing write needs a compensating path |
 | [next-build-fails-silently-stale-cache](lessons/next-build-fails-silently-stale-cache.md) | `nextjs` | `next build` exiting 1 with no error text usually means corrupted `.next`; clear it before touching config |
 | [next-dev-is-not-production](lessons/next-dev-is-not-production.md) | `nextjs` | `next dev` does not replicate static/ISR caching |
-| [next-og-imageresponse-windows](lessons/next-og-imageresponse-windows.md) | `nextjs`, `windows` | `next/og`'s `ImageResponse` breaks `next build` on Windows |
+| [next-og-imageresponse-windows](lessons/next-og-imageresponse-windows.md) | `nextjs`, `windows` | ~~`next/og`'s `ImageResponse` breaks `next build` on Windows~~ — unverified since 14.2.35; counter-evidence on Next 15 |
 | [node-modules-without-bin-is-broken](lessons/node-modules-without-bin-is-broken.md) | `node`, `windows` | `node_modules` present ≠ toolchain works; check `.bin` shims after any interrupted install |
+| [layout-metadata-leaks-to-all-pages](lessons/layout-metadata-leaks-to-all-pages.md) | `nextjs-app-router` | `canonical`/`og:url` in the root layout become every page's canonical; set them per page |
+| [stacked-pr-base-deletion-cascade](lessons/stacked-pr-base-deletion-cascade.md) | `github-actions` | Deleting a stacked PR's base branch auto-closes every PR above it and they can't be reopened |
 | [shadcn-pin-tailwind-v3](lessons/shadcn-pin-tailwind-v3.md) | `shadcn`, `tailwind-v3` | Pin the shadcn CLI; `@latest` emits Tailwind-v4-only CSS |
 | [vitest-fork-timeout-windows](lessons/vitest-fork-timeout-windows.md) | `vitest`, `windows` | vitest's forks pool can hang on Windows; use `--no-file-parallelism` |
 
