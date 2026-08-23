@@ -1,12 +1,14 @@
 ---
 name: deslop
 description: >
-  Use on an AI-generated or AI-assisted change, before committing, to strip the
-  noise a model adds — comments that restate code, tutorial-voice asides,
-  commented-out scaffold, lazy `any`, inline values the project has a home for —
-  WITHOUT touching legitimate engineering. Diff-scoped, never removes information,
-  safety, or intent. Not a linter, not a bug finder. Triggers on "deslop",
-  "clean up this AI code", "remove the slop", after accepting a large generation.
+  YOU HAVE JUST WRITTEN OR GENERATED A BLOCK OF CODE and are about to commit it —
+  run this over your own diff first. It strips the noise a model adds: comments
+  that restate the code, tutorial-voice asides, commented-out scaffold, lazy
+  `any`, inline values the project has a home for — WITHOUT touching legitimate
+  engineering. Diff-scoped, never removes information, safety, or intent. Not a
+  linter, not a bug finder. The moment is the trigger: your own generated diff,
+  before it is committed. Also triggers on "deslop", "clean up this AI code",
+  "remove the slop".
 ---
 
 # deslop

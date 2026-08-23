@@ -178,6 +178,32 @@ at 3 and 2 firings.
 `explain-and-open-pr` is the counter-example that keeps the thesis alive: five
 firings, all five from ordinary work, four produced a commit.
 
+## Running experiment: three descriptions retuned (started 2026-08-23)
+
+Hypothesis: `sweep-the-class` and `deslop` never route from ordinary work because
+their descriptions lead with *the human's phrasing* ("where else", "remove the
+slop") and bury the model-detectable moment. `tdd` never routes because every
+trigger it lists is a name for the practice rather than the situation.
+
+Change made: in all three, the detectable moment is now first and in capitals —
+"you have just fixed a bug", "you have just written a block of code and are about
+to commit", "you are about to create a new test file". Scope is unchanged and no
+new verb was added, per the rewrite constraint above: sharper, never broader.
+
+Baseline to beat, at the moment of the change:
+
+| Skill | Firings | Task-routed | Chances taken |
+|---|---|---|---|
+| `sweep-the-class` | 3 | 0 | not measurable |
+| `deslop` | 2 | 0 | not measurable |
+| `tdd` | 0 | 0 | 0 of 3 |
+
+The test is the next scan. **Task-routed** is the number that matters — total
+firings can rise from library-invoked prompts without meaning anything. If
+task-routed is still zero after a fair run of real work, the description is not
+the lever and the honest conclusion is that these skills need a rule that fires
+them, or need cutting.
+
 ## The trial (#12)
 
 1. Rewrite descriptions **only where the measured data shows a problem**. The

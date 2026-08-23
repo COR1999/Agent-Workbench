@@ -1,11 +1,12 @@
 ---
 name: tdd
 description: >
-  Use when writing code test-first, or when asked to "use TDD", "write a failing
-  test first", "red-green", or add well-tested behaviour. A methodology reference:
-  it defines HOW the loop runs and the decisions hidden in "just use TDD"; the
-  implementation workflow executes. Triggers on "TDD", "test first", "write the
-  test first", "red green refactor".
+  YOU ARE ABOUT TO CREATE A NEW TEST FILE, or to add new behaviour that will need
+  one — read this before writing either the test or the code. A methodology
+  reference: it defines HOW the red-green loop runs and the decisions hidden
+  inside "just use TDD"; the implementation workflow executes. The moment is the
+  trigger: new tested behaviour, before the first line of it exists. Also triggers
+  on "TDD", "test first", "write the test first", "red green refactor".
 ---
 
 # tdd

@@ -1,11 +1,13 @@
 ---
 name: sweep-the-class
 description: >
-  Use right after making or reviewing a fix, before declaring it done, to check
-  whether the same defect exists elsewhere. Answers "did I fix the instance or
-  the class?". Produces an inventory of sibling instances and an explicit
-  coverage statement. NEVER edits code. Triggers on "where else", "same class
-  as", "sweep", "did I get them all", or any fix that could plausibly recur.
+  YOU HAVE JUST FIXED A BUG, or reviewed someone else's fix, and are about to say
+  it is done — use this first, before reporting completion, to find whether the
+  same defect exists elsewhere. Answers "did I fix the instance or the class?".
+  Produces an inventory of sibling instances and an explicit coverage statement.
+  NEVER edits code. The moment is the trigger: any fix whose cause could plausibly
+  recur at another call site, in another handler, on another route. Also triggers
+  on "where else", "same class as", "sweep", "did I get them all".
 ---
 
 # sweep-the-class
