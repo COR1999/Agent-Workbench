@@ -125,6 +125,7 @@ context and does not belong here.
 
 | Lesson | Applies to | Claim |
 |---|---|---|
+| [opencode-explicit-env-apikey-blocks-credential-store](lessons/opencode-explicit-env-apikey-blocks-credential-store.md) | `windows`, `opencode` | An empty-resolving `apiKey: {env:X}` in a provider block suppresses the auth.json fallback with an opaque cookie-auth error; store keys in the credential store and keep config env-free |
 | [backslash-escape-slop-breaks-tsx](lessons/backslash-escape-slop-breaks-tsx.md) | `react`, `typescript` | AI-generated TSX can contain literal `\``, `\${` escapes that break compilation; regex-strip before hand-editing |
 | [get-content-ansi-default-corrupts-utf8](lessons/get-content-ansi-default-corrupts-utf8.md) | `windows` | PS 5.1 `Get-Content` decodes BOM-less files as ANSI; round-tripping UTF-8 config through parse-mutate-write silently stores mojibake |
 | [check-lastexitcode-not-stderr](lessons/check-lastexitcode-not-stderr.md) | `windows` | PowerShell surfaces native-command stderr as error text; a mutating command can print scary output and still succeed |
