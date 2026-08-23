@@ -178,6 +178,45 @@ at 3 and 2 firings.
 `explain-and-open-pr` is the counter-example that keeps the thesis alive: five
 firings, all five from ordinary work, four produced a commit.
 
+## Where the firings actually happened
+
+Only **3 of 24 firings were inside Agent-Workbench itself**. The other 21 happened
+in real project work, across four separate repositories. The library is not just
+testing itself:
+
+| Repository | Firings |
+|---|---|
+| a model-tracking project | 9 |
+| a commerce project | 5 |
+| a reporting project | 3 |
+| an app project | 3 |
+| Agent-Workbench (self-referential) | 3 |
+| other | 1 |
+
+Task-routed firings of workbench skills **outside** this repo: `explain-and-open-pr`
+×4, `capture-lesson` ×2, `design-handbook` ×1. That is the thesis in its narrowest
+honest form — the library travelled to other projects and was reached from
+ordinary work there.
+
+## The whole dataset came from a frozen copy
+
+`scripts/install.sh` falls back from symlink to copy when the OS refuses a link.
+On this machine it had copied, on 2026-08-20, and every skill edit since then
+reached no session at all. Both harnesses read the same
+`~/.claude/skills` directory — confirmed from OpenCode's own recorded skill paths
+— so all 24 firings ran against identical, three-day-old content.
+
+Two consequences, one bad and one good:
+
+- The retune of three descriptions would have measured nothing. It was live only
+  after `install.sh` was re-run and verified by grepping the *installed* file for
+  a string only present in the source.
+- The baseline is unusually clean *because* of the freeze: every firing in it ran
+  against the same content, so it is a fair before-picture for the experiment
+  below.
+
+Captured as [`copy-fallback-freezes-the-install`](../lessons/copy-fallback-freezes-the-install.md).
+
 ## Running experiment: three descriptions retuned (started 2026-08-23)
 
 Hypothesis: `sweep-the-class` and `deslop` never route from ordinary work because
