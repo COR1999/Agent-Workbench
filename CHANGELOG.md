@@ -7,6 +7,17 @@ judgement or the import contract changed in a way that could alter results;
 Skills install once per machine, so only one version is ever active — versions
 exist for communication and rollback, not concurrent use.
 
+## [0.6.2] — 2026-08-23
+
+### Changed
+- **`cli-migration-sweep-every-invocation-site` — added a second failure mode.**
+  Beyond sweeping call sites, a CLI migration must reproduce the deprecated
+  wrapper's *implicit* behaviour: swapping a framework lint wrapper for the raw
+  linter silently drops the wrapper's default ignore paths, so the new command
+  lints build output and fails — while CI can stay green because lint runs before
+  the build directory exists. Surfaced by executing such a migration and hitting
+  hundreds of errors from a generated directory. README row updated to match.
+
 ## [0.6.1] — 2026-08-22
 
 ### Added
