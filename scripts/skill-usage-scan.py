@@ -76,6 +76,32 @@ ALIASES = {
 EDIT_TOOLS = {"Edit", "Write", "MultiEdit", "NotebookEdit"}
 OPENCODE_EDIT_TOOLS = {"edit", "write", "patch"}
 
+# The harness injects text that LOOKS like a user turn: a skill's own load banner,
+# slash-command expansions, system reminders. Counting those as "the human's next
+# message" contaminated both the pushback detector and the prompted/unprompted
+# guess - a second skill call in a session was being compared against the FIRST
+# skill's banner rather than against anything a human wrote.
+NOT_HUMAN = (
+    "base directory for this skill",
+    "<command-name>",
+    "<command-message>",
+    "caveat: the messages below were generated",
+    "<system-reminder>",
+    "this session is being continued from a previous",
+)
+
+# The human pointing AT the library ("use agent workbench methods", "report back
+# to agentworkbench with any new lessons") is not the same as the model routing a
+# skill from an ordinary task. Both are unprompted by skill NAME, and conflating
+# them overstates autonomous routing.
+LIBRARY_REFS = (
+    "agent workbench", "agentworkbench", "agent-workbench",
+    "workbench method", "any new lessons", "self learning system",
+)
+# A batch instruction accepting a list the model already proposed. Also not
+# autonomous routing on a fresh task.
+BATCH_REFS = ("do all", "do both", "do it all", "do them all", "all of them")
+
 PUSHBACK = [
     "no ", "nope", "don't", "dont ", "stop", "undo", "revert", "wrong",
     "that's not", "thats not", "not what i", "instead", "actually no",
@@ -125,6 +151,26 @@ ARTIFACTS = {
     "handoff": artifact_handoff,
     "tdd": artifact_test,
 }
+
+
+def is_human(text):
+    low = (text or "").strip().lower()
+    if not low:
+        return False
+    return not any(low.startswith(marker) or marker in low[:200]
+                   for marker in NOT_HUMAN)
+
+
+def context_of(user_text):
+    """How the firing was occasioned. Not a verdict; a category for reading."""
+    low = (user_text or "").lower()
+    if not low:
+        return "no-user-text"
+    if any(ref in low for ref in LIBRARY_REFS):
+        return "library-invoked"
+    if any(ref in low for ref in BATCH_REFS):
+        return "batch"
+    return "task"
 
 
 def snippet(text):
@@ -320,7 +366,7 @@ def scan_claude(rows, sessions, stores, window_hours, session_info):
                             for block in content
                             if isinstance(block, dict) and block.get("type") == "text"
                         )
-                        if text.strip():
+                        if text.strip() and is_human(text):
                             timeline.append(("user", text, stamp, cwd))
                         continue
                     for block in content:
@@ -355,6 +401,7 @@ def scan_claude(rows, sessions, stores, window_hours, session_info):
                 "time": stamp,
                 "skill": value,
                 "guess": named_by_user(value, before),
+                "context": context_of(before),
                 "outcome": outcome_for(value, where, epoch, window_hours, after,
                                        edited),
                 "user_text": snippet(before),
@@ -405,7 +452,9 @@ def scan_opencode(rows, sessions, stores, window_hours, session_info):
             continue
         fired = None
         if payload.get("type") == "text" and mid in user_message_ids:
-            user_text_by_session[sid].append((created or 0, payload.get("text", "")))
+            text = payload.get("text", "")
+            if is_human(text):
+                user_text_by_session[sid].append((created or 0, text))
         elif payload.get("type") == "tool" and payload.get("tool") == "skill":
             skill_parts.append((sid, created or 0, payload))
             state = payload.get("state") or {}
@@ -439,6 +488,7 @@ def scan_opencode(rows, sessions, stores, window_hours, session_info):
             "time": created,
             "skill": skill,
             "guess": named_by_user(skill, user_text),
+            "context": context_of(user_text),
             "outcome": outcome_for(skill, directories.get(sid), epoch,
                                    window_hours, next_user,
                                    sid in edited_sessions),
@@ -491,6 +541,17 @@ def main():
                   guesses["alias"], guesses["named"], guesses["slash"],
                   guesses["no-user-text"]))
 
+    print("\nWHAT OCCASIONED IT?   (library-invoked = the human pointed at the "
+          "workbench; batch = accepting a list already proposed; task = routed "
+          "from ordinary work)")
+    per_context = defaultdict(Counter)
+    for row in rows:
+        per_context[row["skill"]][row["context"]] += 1
+    for skill, _ in per_skill.most_common():
+        contexts = per_context[skill]
+        print("  %-24s %s" % (skill, ", ".join(
+            "%s=%d" % (k, v) for k, v in contexts.most_common())))
+
     print("\nDID IT HELP?   (artifact = the skill's own output appeared within "
           "%dh; no-signature = the skill writes no file by design and must be read)"
           % args.window_hours)
@@ -518,12 +579,12 @@ def main():
     out = pathlib.Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open("w", encoding="utf-8", newline="") as handle:
-        handle.write("store\tproject\tsession\ttime\tskill\tguess\toutcome\tkept"
-                     "\tuser_text\tnext_user\n")
+        handle.write("store\tproject\tsession\ttime\tskill\tguess\tcontext"
+                     "\toutcome\tkept\tuser_text\tnext_user\n")
         for row in sorted(rows, key=lambda r: (r["store"], str(r["time"]))):
             handle.write("\t".join([
                 row["store"], row["project"], row["session"], str(row["time"]),
-                row["skill"], row["guess"], row["outcome"], "",
+                row["skill"], row["guess"], row["context"], row["outcome"], "",
                 row["user_text"].replace("\t", " "),
                 row["next_user"].replace("\t", " "),
             ]) + "\n")
