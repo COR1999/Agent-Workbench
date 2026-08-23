@@ -109,6 +109,10 @@ block="$START
 root cause, the mechanism chosen and why, and how it was verified. Not a one-line
 subject.
 
+**Citing a lesson:** when one of the lessons below changes what you do, name
+it in the commit body or PR as: lesson: <slug>. That citation is the only
+evidence a lesson earned its place.
+
 **Lessons matched to this stack:**
 "
 if [ -n "$matched" ]; then

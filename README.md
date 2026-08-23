@@ -69,6 +69,7 @@ scripts/
   adopt.sh         per-project import (idempotent)
   unadopt.sh       remove the import from a project
 docs/
+  ROADMAP.md                     what is being proved now + decisions made
   V0.1_DESIGN_SPECIFICATION.md   the design this was built to
   research/                       the 16-report archaeology it came from
   .research/                      gitignored: plugin/research folders + raw dumps
@@ -103,6 +104,9 @@ Locks each skill's load-bearing rules so they can't be silently edited out of a
 Development that spans more than one AI session is tracked as durable memory on
 GitHub Issues, not in any one session's context. Start here:
 
+- **[docs/ROADMAP.md](docs/ROADMAP.md)** — the decisions themselves: what is
+  under test, the two skill categories, the trial and its end condition. Auto-
+  loads via `CLAUDE.md`. This is the store; the map below only indexes it.
 - **[Agent-Workbench development map](../../issues/7)** (`wayfinder:map`) — what's
   done, what's on the frontier, what's blocked, the last decisions. Read it first
   when resuming.

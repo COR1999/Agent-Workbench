@@ -77,6 +77,12 @@ This machine is Windows 11 with Git Bash.
   `templates/lesson.md`. If it can only be described using project-specific
   detail, it is project context — leave it in the project.
 
+- **When a lesson changes what you do, name its slug in the work record.**
+  A lesson is inert text until it alters a decision, and nothing observable
+  happens when it works — so the citation is the only evidence that it earned
+  its place. Name it in the commit body or PR that it shaped:
+  `lesson: <slug>`. An uncited lesson is indistinguishable from a dead one.
+
 ## Judgement
 
 - **Encode lessons in structure, not prose, when a structure is available.**
