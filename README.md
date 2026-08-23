@@ -145,6 +145,7 @@ context and does not belong here.
 | [next-dev-is-not-production](lessons/next-dev-is-not-production.md) | `nextjs` | `next dev` does not replicate static/ISR caching |
 | [next-og-imageresponse-windows](lessons/next-og-imageresponse-windows.md) | `nextjs`, `windows` | ~~`next/og`'s `ImageResponse` breaks `next build` on Windows~~ — unverified since 14.2.35; counter-evidence on Next 15 |
 | [node-modules-without-bin-is-broken](lessons/node-modules-without-bin-is-broken.md) | `node`, `windows` | `node_modules` present ≠ toolchain works; check `.bin` shims after any interrupted install |
+| [copy-fallback-freezes-the-install](lessons/copy-fallback-freezes-the-install.md) | `windows`, `multi-agent` | An installer that falls back from symlink to copy freezes the installed content at install time; verify by grepping the installed file, not by checking the directory exists |
 | [layout-metadata-leaks-to-all-pages](lessons/layout-metadata-leaks-to-all-pages.md) | `nextjs-app-router` | `canonical`/`og:url` in the root layout become every page's canonical; set them per page |
 | [stacked-pr-base-deletion-cascade](lessons/stacked-pr-base-deletion-cascade.md) | `github-actions` | Deleting a stacked PR's base branch auto-closes every PR above it and they can't be reopened |
 | [shadcn-pin-tailwind-v3](lessons/shadcn-pin-tailwind-v3.md) | `shadcn`, `tailwind-v3` | Pin the shadcn CLI; `@latest` emits Tailwind-v4-only CSS |
