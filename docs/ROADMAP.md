@@ -13,9 +13,16 @@ Skills must get picked up **without the human naming them**. If a skill only eve
 fires because someone typed its name, the library is a command palette, not a
 carried capability — and it has not earned the machinery around it.
 
-Evidence so far: 2 skills validated retrospectively; **0 of 9 fired via natural
-request** across a multi-hour real session. That number is the baseline this
-roadmap exists to move.
+**Baseline, measured 2026-08-23** by `scripts/skill-usage-scan.py` across every
+local store: **24 skill firings over 77 sessions**, and **8 of the 9 skills have
+fired at least once**. Only `tdd` has never fired.
+
+This replaces the previous claim here, that 0 of 9 had ever fired naturally.
+That claim came from one session's recollection of one store and was simply
+wrong: 17 of the 24 firings are in OpenCode, which the hand-maintained tally had
+never looked at. `lessons/agent-sessions-live-in-multiple-stores.md` predicted
+exactly this failure, and the tally walked into it anyway — which is the case for
+measuring rather than remembering, made at our own expense.
 
 ## Portability constraint
 
@@ -81,8 +88,11 @@ unless a real session was missed because it was absent.
 
 ## The trial (#12)
 
-1. Rewrite the descriptions of the **six model-invocable** skills. Leave the three
-   human-invoked ones alone.
+1. Rewrite descriptions **only where the measured data shows a problem**. The
+   original plan — rewrite all six — was premised on 0 of 9 firing. With 8 of 9
+   firing, rewriting a description that demonstrably works risks a regression for
+   no gain. `tdd` (zero firings) is the clear candidate; anything else needs a
+   reason from the classification pass.
 2. Then count from zero.
 3. Judge at **35 sessions**.
 4. Rank the six by **kept** unprompted firings and **cut the bottom third**.
