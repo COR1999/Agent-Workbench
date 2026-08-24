@@ -13,16 +13,32 @@ Skills must get picked up **without the human naming them**. If a skill only eve
 fires because someone typed its name, the library is a command palette, not a
 carried capability — and it has not earned the machinery around it.
 
-**Baseline, measured 2026-08-23** by `scripts/skill-usage-scan.py` across every
-local store: **24 skill firings over 77 sessions**, and **8 of the 9 skills have
-fired at least once**. Only `tdd` has never fired.
+### Current answer, measured 2026-08-24
 
-This replaces the previous claim here, that 0 of 9 had ever fired naturally.
-That claim came from one session's recollection of one store and was simply
-wrong: 17 of the 24 firings are in OpenCode, which the hand-maintained tally had
-never looked at. `lessons/agent-sessions-live-in-multiple-stores.md` predicted
-exactly this failure, and the tally walked into it anyway — which is the case for
-measuring rather than remembering, made at our own expense.
+**The library is reached in roughly one situation in ten where it applies.**
+`scripts/build-replay-set.py`: 102 applicable situations across 61 train
+sessions, 6 taken — 94% missed. Holdout agrees at 87%. The rate holds between 81%
+and 94% across every attribution window tried, so it is not an artefact of a
+constant someone chose.
+
+That is the number that answers the claim. Everything else below is how it was
+arrived at, including the two wrong answers on the way.
+
+### The same question, answered three times, twice wrongly
+
+| Answer | Method | Why it was wrong |
+|---|---|---|
+| "0 of 9 skills have ever fired" | one session's recollection, written into a memory file | Looked at one store. 17 of 24 firings were in OpenCode, never read. |
+| "8 of 9 have fired; the thesis holds" | counting firings across all stores | Right count, wrong denominator. Firing *at all* was never the question. |
+| **"~90% of applicable situations are missed"** | labelled replay set: applicable-from-outcome vs actually-fired | Stands until something falsifies it. |
+
+Each correction made the picture worse, and each came from measuring something
+the previous method could not see. `lessons/agent-sessions-live-in-multiple-stores`
+predicted the first failure and the tally walked into it anyway.
+
+The counting figures — 24 firings over 77 sessions, 8 of 9 skills — are still
+true. They are simply not evidence for the claim, which is what the third method
+established.
 
 ## Portability constraint
 
@@ -160,23 +176,31 @@ hid: **what occasioned the firing**. Three kinds:
 
 | Skill | Firings | Task-routed | Outcome | Verdict |
 |---|---|---|---|---|
-| `explain-and-open-pr` | 5 | **5** | 4 artifact, 1 pushback | **KEEP** — strongest in the library |
-| `capture-lesson` | 6 | 3 | 2 artifact, 2 none, 1 pushback | **KEEP** |
+| `explain-and-open-pr` | 5 | 1 | 4 artifact, 1 pushback | **KEEP** — best outcome record |
+| `capture-lesson` | 7 | 1 | 2 artifact, 2 none, 1 pushback | **KEEP** |
 | `sweep-the-class` | 3 | **0** | no signature | **TUNE** — only ever fires when pointed at |
 | `deslop` | 2 | **0** | 1 pushback | **TUNE** — batch only, and pushed back on |
-| `design-handbook` | 1 | 1 | no artifact | **THIN** — one firing, nothing produced |
+| `design-handbook` | 1 | 0 | no artifact | **THIN** — one firing, nothing produced |
 | `tdd` | 0 | 0 | 0 of 3 chances | **TUNE or CUT** — a judgement, not a calculation |
 | `grilling`, `agentic-vocabulary`, `handoff` | 4 | 1 | — | **Exempt** — human-invoked by design |
 
-**The finding that matters:** `sweep-the-class` and `deslop` have never once been
-routed from ordinary work. Every firing came from the human naming the library or
-approving a list. They are not being reached by the descriptions; they are being
-reached by you remembering they exist. That is precisely the failure this project
-exists to detect, and it is invisible in the raw firing counts — both look healthy
-at 3 and 2 firings.
+**Corrected 2026-08-24.** The task-routed column first read 5 for
+`explain-and-open-pr` and 3 for `capture-lesson`. The human pointed out that in
+OpenCode he had usually asked for the workbench at the start of a session, and the
+classifier only looked at the message immediately before a firing — so a session
+opened with "use agent workbench methods" scored every later firing as routed from
+ordinary work. Context is now evaluated across the whole session up to the firing.
 
-`explain-and-open-pr` is the counter-example that keeps the thesis alive: five
-firings, all five from ordinary work, four produced a commit.
+Read the column as a **lower bound**: session-level priming over-attributes in the
+other direction, since one mention taints every later firing in that session. The
+truth for `explain-and-open-pr` is between 1 and 5.
+
+**The finding that survives both corrections:** `sweep-the-class` and `deslop`
+have never once been routed from ordinary work. Every firing came from the human
+naming the library or approving a list. They are not being reached by their
+descriptions; they are being reached by the human remembering they exist. That is
+precisely the failure this project exists to detect, and it is invisible in the
+raw firing counts — both look healthy at 3 and 2 firings.
 
 ## Where the firings actually happened
 
