@@ -118,9 +118,20 @@ for f in "$LESSONS_DIR"/*.md; do
   req="$(sed -n 's/^applies-to: *\[\(.*\)\].*/\1/p' "$f" | tr ',' ' ')"
   date="$(sed -n 's/^discovered: *\([0-9-]*\).*/\1/p' "$f")"
   claim="$(sed -n 's/^# *//p' "$f" | head -1)"
+  status="$(sed -n 's/^status: *//p' "$f" | head -1)"
+  # A superseded lesson was proven false or replaced. README's staleness table has
+  # always said it must never inline — but nothing read this field until now, so a
+  # disproved claim would have kept being copied into every matching project. The
+  # file stays (why it was believed, and what disproved it, is itself the lesson);
+  # it just does not travel.
+  case "$status" in superseded*) continue;; esac
+  # An unverified lesson still inlines, flagged, so a reader re-checks it rather
+  # than trusting it silently.
+  note=""
+  case "$status" in unverified*) note=" *(unverified — re-check before relying on it)*";; esac
   ok=1
   for r in $req; do case "$det" in *" $r "*) ;; *) ok=0;; esac; done
-  [ "$ok" = 1 ] && matched="${matched}- **${slug}** (${date}) — ${claim}"$'\n'
+  [ "$ok" = 1 ] && matched="${matched}- **${slug}** (${date}) — ${claim}${note}"$'\n'
 done
 
 # ---- build the managed block --------------------------------------------------

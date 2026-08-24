@@ -170,7 +170,7 @@ context and does not belong here.
 | [compensate-after-external-call](lessons/compensate-after-external-call.md) | `stripe` | An external call after a state-changing write needs a compensating path |
 | [next-build-fails-silently-stale-cache](lessons/next-build-fails-silently-stale-cache.md) | `nextjs` | `next build` exiting 1 with no error text usually means corrupted `.next`; clear it before touching config |
 | [next-dev-is-not-production](lessons/next-dev-is-not-production.md) | `nextjs` | `next dev` does not replicate static/ISR caching |
-| [next-og-imageresponse-windows](lessons/next-og-imageresponse-windows.md) | `nextjs`, `windows` | ~~`next/og`'s `ImageResponse` breaks `next build` on Windows~~ — unverified since 14.2.35; counter-evidence on Next 15 |
+| [next-og-imageresponse-windows](lessons/next-og-imageresponse-windows.md) | `nextjs`, `windows` | ~~`next/og`'s `ImageResponse` breaks `next build` on Windows~~ — **superseded**: falsified by a direct build on next@16.3.2; no longer inlined |
 | [node-modules-without-bin-is-broken](lessons/node-modules-without-bin-is-broken.md) | `node`, `windows` | `node_modules` present ≠ toolchain works; check `.bin` shims after any interrupted install |
 | [copy-fallback-freezes-the-install](lessons/copy-fallback-freezes-the-install.md) | `windows`, `multi-agent` | An installer that falls back from symlink to copy freezes the installed content at install time; verify by grepping the installed file, not by checking the directory exists |
 | [layout-metadata-leaks-to-all-pages](lessons/layout-metadata-leaks-to-all-pages.md) | `nextjs-app-router` | `canonical`/`og:url` in the root layout become every page's canonical; set them per page |
@@ -273,7 +273,15 @@ nothing is dead weight.
 |---|---|---|
 | `active` | Believed current | Inline freely |
 | `unverified-since <version>` | Was true; conditions may have changed | Inline; the text says to re-check |
-| `superseded by <slug>` | Proven false or replaced | Never inline. **Never delete** — why it was believed, and what disproved it, is itself the lesson. |
+| `superseded ...` | Proven false or replaced | Never inline. **Never delete** — why it was believed, and what disproved it, is itself the lesson. |
+
+**These are enforced, not just documented.** `adopt.sh` skips a `superseded`
+lesson and flags an `unverified` one inline, and `lesson-audit.py --check` (which
+runs in CI) rejects any status it does not recognise. Until 2026-08 nothing read
+the field at all, so a lesson proven false would have kept being copied into every
+matching project — found by re-testing one and discovering it could not be
+retired. The `by <slug>` suffix is optional: a lesson can be falsified without
+being replaced.
 
 ## Sanitization policy
 
