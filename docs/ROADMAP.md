@@ -403,9 +403,35 @@ it; they are owed nothing.
 
 ## Known open questions
 
-- **The 15-entry revisit for AND-matching never happened.** The ledger is at 21
-  lessons. The rule that a lesson applies only when *every* `applies-to` value is
-  detected has not been re-tested at this size.
+- ~~The 15-entry revisit for AND-matching never happened.~~ **Done 2026-08-24**,
+  as `scripts/lesson-audit.py` rather than as a one-off opinion. Findings at 22
+  lessons:
+
+  - **4 lessons (18%) were unreachable** — they named values (`diagnostics`,
+    `env-vars`, `multi-agent`, `opencode`) that `adopt.sh` could not detect, so
+    they could never inline into any project however apt. Nothing reported this;
+    adopt.sh simply skipped them silently. Now 0: detection was added for
+    `opencode` and `multi-agent`, and `diagnostics`/`env-vars` were dropped from
+    the two lessons using them, being topics rather than detectable conditions.
+  - **The closed vocabulary was not closed.** Those four values were in use by
+    lessons but absent from the template's table. The audit reads the detectable
+    set out of `adopt.sh` itself, so this class of drift is now mechanical to
+    find.
+  - **`postgres` and `webhooks` were declared but undetected** (#19, #35) —
+    the same silent failure. Detection added, asserted in both directions.
+
+  **The answer to the revisit itself:** AND-matching still works for
+  project-scoped lessons, and is structurally inert for **6 of 22 (27%)** whose
+  `applies-to` contains only machine-level values (`windows`, `macos`,
+  `opencode`, `multi-agent`). A value describing the machine is true of every
+  project on it, so there is no project-level term left to narrow on — those
+  lessons inline everywhere. One adopted project now matches 22 of 22.
+
+  That is not an argument against AND. It is an argument that a machine-only
+  lesson is a **machine rule wearing a lesson's frontmatter**, and belongs in the
+  `AGENTS.md` rules block that `install.sh` loads once per machine. Left as a
+  decision rather than actioned, because it moves the boundary between the three
+  knowledge kinds and that boundary is the project's core claim.
 - **`preflight-public.sh` runs in CI only** (deliberate). CI on a pull request
   blocks the merge, but the branch push is already public — this narrows the
   window, it does not close it.

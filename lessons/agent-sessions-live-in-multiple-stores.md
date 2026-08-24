@@ -1,5 +1,5 @@
 ---
-applies-to: [windows, diagnostics, multi-agent]
+applies-to: [windows, multi-agent]
 discovered: 2026-08
 status: active
 ---

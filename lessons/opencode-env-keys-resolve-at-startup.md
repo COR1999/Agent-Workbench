@@ -1,5 +1,5 @@
 ---
-applies-to: [opencode, windows, env-vars]
+applies-to: [opencode, windows]
 discovered: 2026-08
 status: active
 ---
