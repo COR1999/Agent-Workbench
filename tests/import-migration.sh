@@ -24,6 +24,15 @@ check() { # check <description> <expected> <actual>
   if [ "$2" = "$3" ]; then ok "$1"; else fail "$1 (expected $2, got $3)"; fi
 }
 
+# grep -c prints 0 AND exits 1 when there are no matches, so a `grep -c ... || echo 0`
+# fallback emits two zeroes on separate lines and every zero-expecting check then
+# fails on a value that was actually correct. Always count through this helper.
+count() { # count <pattern> <file>
+  local n
+  n="$(grep -c "$1" "$2" 2>/dev/null | head -1)"
+  echo "${n:-0}"
+}
+
 make_project() { # make_project <dir> <marker-style>
   local dir="$1" style="$2"
   mkdir -p "$dir"
@@ -72,8 +81,8 @@ check "user content survives"     2 "$(grep -c 'CONTENT-ABOVE\|CONTENT-BELOW' "$
 echo "adopt.sh — a project with no AGENTS.md at all:"
 N="$TMP/fresh"; mkdir -p "$N"; echo '{"dependencies":{"next":"15.0.0"}}' > "$N/package.json"
 bash "$REPO/scripts/adopt.sh" "$N" >/dev/null 2>&1
-check "AGENTS.md created with one block" 1 "$(grep -c 'workbench:start' "$N/AGENTS.md" 2>/dev/null || echo 0)"
-check "CLAUDE.md points at AGENTS.md"    1 "$(grep -c '@AGENTS.md' "$N/CLAUDE.md" 2>/dev/null || echo 0)"
+check "AGENTS.md created with one block" 1 "$(count 'workbench:start' "$N/AGENTS.md")"
+check "CLAUDE.md points at AGENTS.md"    1 "$(count '@AGENTS.md' "$N/CLAUDE.md")"
 
 echo "adopt.sh — stack detection, positive and negative:"
 # postgres and webhooks were declared in the lesson vocabulary long before
@@ -94,6 +103,41 @@ printf '{"dependencies":{"next":"15.0.0"}}\n' > "$B/package.json"
 bare="$(bash "$REPO/scripts/adopt.sh" "$B" 2>/dev/null | sed -n 's/^  stack: *//p')"
 case "$bare" in *postgres*) fail "postgres false positive on a bare project";; *) ok "no postgres false positive";; esac
 case "$bare" in *webhooks*) fail "webhooks false positive on a bare project";; *) ok "no webhooks false positive";; esac
+
+echo "adopt.sh — hostile paths and file shapes:"
+# These were raised as "harden adopt.sh" (#27). Testing first found the script
+# already handled all of them, so what was missing was not hardening but proof
+# that it stays handled. A path with spaces and a CRLF AGENTS.md are the two most
+# likely shapes on the machine this runs on.
+S="$TMP/a project (v2)"; mkdir -p "$S"
+printf '{"dependencies":{"next":"15.0.0"}}\n' > "$S/package.json"
+bash "$REPO/scripts/adopt.sh" "$S" >/dev/null 2>&1
+check "path with spaces and parentheses" 1 "$(count ':start' "$S/AGENTS.md")"
+bash "$REPO/scripts/unadopt.sh" "$S" >/dev/null 2>&1
+check "unadopt on a path with spaces"    0 "$(count ':start' "$S/AGENTS.md")"
+
+C="$TMP/crlf"; mkdir -p "$C"
+printf '{"dependencies":{"next":"15.0.0"}}\n' > "$C/package.json"
+printf '# p\r\n\r\nCRLF-ABOVE\r\n\r\n<!-- workbench:start — managed by Agent-Workbench; do not edit inside this block -->\r\nOLD\r\n<!-- workbench:end -->\r\n\r\nCRLF-BELOW\r\n' > "$C/AGENTS.md"
+bash "$REPO/scripts/adopt.sh" "$C" >/dev/null 2>&1
+check "CRLF file: one block after migration" 1 "$(grep -c ':start' "$C/AGENTS.md")"
+check "CRLF file: old block content gone"    0 "$(grep -c 'OLD' "$C/AGENTS.md")"
+check "CRLF file: user content survives"     2 "$(grep -c 'CRLF-ABOVE\|CRLF-BELOW' "$C/AGENTS.md")"
+
+W="$TMP/nonewline"; mkdir -p "$W"
+printf '{"dependencies":{"next":"15.0.0"}}\n' > "$W/package.json"
+printf '# p\n\nNO-TRAILING-NEWLINE' > "$W/AGENTS.md"
+bash "$REPO/scripts/adopt.sh" "$W" >/dev/null 2>&1
+check "file with no trailing newline: content kept" 1 "$(grep -c 'NO-TRAILING-NEWLINE' "$W/AGENTS.md")"
+check "file with no trailing newline: one block"    1 "$(grep -c ':start' "$W/AGENTS.md")"
+
+# A script that fails silently is worse than one that fails loudly.
+bash "$REPO/scripts/adopt.sh" "$TMP/no-such-dir" >/dev/null 2>&1
+check "nonexistent project exits non-zero" 1 "$?"
+bash "$REPO/scripts/adopt.sh" >/dev/null 2>&1
+check "adopt with no argument exits non-zero" 1 "$?"
+bash "$REPO/scripts/unadopt.sh" >/dev/null 2>&1
+check "unadopt with no argument exits non-zero" 1 "$?"
 
 echo
 if [ "$fails" -eq 0 ]; then
