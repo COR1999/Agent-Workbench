@@ -35,7 +35,11 @@ HOME="$FAKE_HOME" bash "$REPO/scripts/install.sh" >/dev/null 2>&1
 check "rules block written"        1 "$(count 'workbench-rules:start' "$FAKE_HOME/.claude/CLAUDE.md")"
 check "rules block closed"         1 "$(count 'workbench-rules:end' "$FAKE_HOME/.claude/CLAUDE.md")"
 expected="$(find "$REPO/skills" -maxdepth 2 -name SKILL.md | wc -l | tr -d ' ')"
-installed="$(find "$FAKE_HOME/.claude/skills" -maxdepth 2 -name SKILL.md 2>/dev/null | wc -l | tr -d ' ')"
+# -L because install.sh SYMLINKS the skills when the OS allows it, and find
+# will not descend into a symlinked directory without it. Without -L this
+# reported 0 skills installed on Linux while reporting 9 on Windows, where
+# the copy fallback had run — a difference in the test, not in the subject.
+installed="$(find -L "$FAKE_HOME/.claude/skills" -maxdepth 2 -name SKILL.md 2>/dev/null | wc -l | tr -d ' ')"
 check "every skill installed" "$expected" "$installed"
 
 echo "install.sh — re-run is idempotent:"
