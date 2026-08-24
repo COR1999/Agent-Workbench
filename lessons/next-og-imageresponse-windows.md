@@ -1,7 +1,7 @@
 ---
 applies-to: [nextjs, windows]
 discovered: 2026-07
-status: unverified-since next@14.2.35 — counter-evidence at next@15.4.10
+status: superseded — falsified by direct re-test on next@16.3.2 (2026-08)
 ---
 
 # Don't use next/og's ImageResponse on Windows
@@ -26,11 +26,26 @@ bug is still live, so this is the right default regardless.
 enforce it, but is probably not worth writing for a one-line judgement call.
 Prose is acceptable here.
 
-**Staleness note:** observed on Next 14.2.35 (matches the frontmatter). An
-external audit (issue #16, finding 3) reported the opposite on **next@15.4.10** —
-an edge-runtime `opengraph-image.tsx` built clean on Windows across six
-consecutive builds. Not reproduced here, but enough to treat the failure as
-version-bounded (a fix landed somewhere after 14.2.35) or fixed upstream, rather
-than a current blanket incompatibility. Re-test on your exact Next version before
-treating this as live. The recommendation in **Instead** stands regardless of the
-bug's status — it's the simpler, OS-independent default either way.
+**Falsified 2026-08-24, by building it rather than reasoning about it.** A minimal
+App Router project with an edge-runtime `opengraph-image.tsx` using
+`ImageResponse` was scaffolded on Windows and built with **next@16.3.2**:
+`next build` completed successfully, generated the route, and produced no
+`TypeError: Invalid URL`. Combined with the earlier external counter-evidence at
+next@15.4.10, the failure is bounded to versions at or below 14.2.35 and is not a
+current incompatibility.
+
+**Kept, not deleted, and no longer inlined.** The claim is false for any Next
+version anyone is realistically running, so `adopt.sh` now skips it — a superseded
+lesson must not travel into projects. The file remains because why it was believed
+and what disproved it is itself the record.
+
+**What does not survive as a lesson:** the *recommendation* — prefer static icons
+and metadata-based Open Graph images — is still reasonable, but with the bug gone
+it is a preference rather than a lesson. It costs nothing to ignore, so by the
+four-part test it does not belong in the ledger.
+
+**The transferable part:** a lesson pinned to a dependency version has a shelf
+life, and nothing expires it automatically. This one sat at `unverified-since` for
+a month while still being inlined into every matching project, because the tooling
+did not read `status` at all. That gap was found and closed by re-testing this
+lesson.

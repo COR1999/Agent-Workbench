@@ -104,6 +104,24 @@ bare="$(bash "$REPO/scripts/adopt.sh" "$B" 2>/dev/null | sed -n 's/^  stack: *//
 case "$bare" in *postgres*) fail "postgres false positive on a bare project";; *) ok "no postgres false positive";; esac
 case "$bare" in *webhooks*) fail "webhooks false positive on a bare project";; *) ok "no webhooks false positive";; esac
 
+echo "adopt.sh — lesson status is honoured:"
+# README's staleness table has always said a superseded lesson must never inline.
+# Nothing read the status field until 2026-08, so a claim proven FALSE would have
+# kept being copied into every matching project. Both directions asserted: the
+# superseded one is excluded, and ordinary ones for the same stack still arrive.
+ST="$TMP/status"; mkdir -p "$ST"
+printf '{"dependencies":{"next":"15.0.0","react":"18.0.0"}}\n' > "$ST/package.json"
+bash "$REPO/scripts/adopt.sh" "$ST" >/dev/null 2>&1
+superseded="$(grep -l '^status: *superseded' "$REPO"/lessons/*.md 2>/dev/null | head -1)"
+if [ -n "$superseded" ]; then
+  slug="$(basename "$superseded" .md)"
+  check "superseded lesson is not inlined" 0 "$(count "$slug" "$ST/AGENTS.md")"
+else
+  ok "no superseded lesson in the ledger to exclude"
+fi
+check "other lessons for the stack still inline" 1 \
+  "$([ "$(count '^- \*\*' "$ST/AGENTS.md")" -gt 0 ] && echo 1 || echo 0)"
+
 echo "adopt.sh — hostile paths and file shapes:"
 # These were raised as "harden adopt.sh" (#27). Testing first found the script
 # already handled all of them, so what was missing was not hardening but proof

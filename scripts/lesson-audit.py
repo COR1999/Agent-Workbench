@@ -205,6 +205,16 @@ def run_checks(entries, detectable, declared):
             problems.append("%s can never match any project: adopt.sh cannot "
                             "detect %s" % (entry["slug"], ", ".join(blocking)))
 
+    # adopt.sh branches on this string; an unrecognised one silently means
+    # "treat as active", which is the wrong default for a lesson someone marked.
+    for entry in entries:
+        status = entry["status"]
+        if not (status == "active" or status.startswith("unverified")
+                or status.startswith("superseded")):
+            problems.append("%s has an unrecognised status %r (expected active, "
+                            "unverified-since ..., or superseded ...)"
+                            % (entry["slug"], status))
+
     linked = readme_linked_slugs()
     for slug in sorted({e["slug"] for e in entries} - linked):
         problems.append("%s is in lessons/ but absent from the README table"
