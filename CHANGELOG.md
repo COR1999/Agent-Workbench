@@ -7,6 +7,48 @@ judgement or the import contract changed in a way that could alter results;
 Skills install once per machine, so only one version is ever active — versions
 exist for communication and rollback, not concurrent use.
 
+## [0.7.0] — 2026-08-23
+
+### Changed
+- **BREAKING (import contract): the managed-block marker is renamed `pas` →
+  `workbench`** (#3). A project's `AGENTS.md` now carries
+  `<!-- workbench:start -->` / `<!-- workbench:end -->`, and the machine-wide
+  `CLAUDE.md` carries `<!-- workbench-rules:start -->`. The `## Inherited from
+  personal-agent-system` line becomes `## Inherited from Agent-Workbench`.
+
+  **Nothing breaks on upgrade.** `adopt.sh`, `unadopt.sh` and `install.sh` all
+  recognise the old markers when stripping, so a re-run *migrates* an existing
+  block in place instead of appending a second one. Verified against fixtures
+  covering: an old block plus surrounding user content, a re-run for idempotency,
+  `unadopt` on a new block, and `unadopt` on a legacy-only block. Content above
+  and below the block survived every path.
+
+  The legacy handling stays until no adopted project carries the old marker.
+  Removing it early would silently orphan a block and load two copies of the
+  rules into every session.
+
+### Added
+- `scripts/skill-usage-scan.py` — counts skill firings across every local agent
+  store (Claude-family JSONL and OpenCode's SQLite), with an artifact test for
+  whether a firing helped, a miss test for opportunities not taken, and a context
+  column separating task-routed firings from library-invoked ones.
+- `scripts/build-replay-set.py` — turns past sessions into labelled routing
+  examples with a fixed train/holdout split.
+- `docs/ROADMAP.md` — the single store for the project's decisions, auto-loaded
+  via `CLAUDE.md`.
+- `lessons/copy-fallback-freezes-the-install` — an installer that falls back from
+  symlink to copy freezes the installed content at install time.
+- `AGENTS.md` rule: name the lesson slug in the work record when a lesson changes
+  what you do.
+
+### Fixed
+- **Eight real repository names were present in this public tree** and are now
+  genericized. `preflight-public.sh` held no repository-name patterns at all, and
+  scanned the whole working directory including `.git/` and the gitignored
+  `.research/` clones — so it failed on every run and was dismissed as a known
+  false positive. It now scans tracked files only, exits clean, and was verified
+  to still catch a planted leak.
+
 ## [0.6.2] — 2026-08-23
 
 ### Changed

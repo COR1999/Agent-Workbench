@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Import personal-agent-system into a project: detect its stack, inline the
+# Import Agent-Workbench into a project: detect its stack, inline the
 # matching lessons + the record-work reminder + a version marker into the
 # project's AGENTS.md, and ensure CLAUDE.md points at it.
 #
-# Idempotent: the managed block (between the pas:start / pas:end markers) is
+# Idempotent: the managed block (between the workbench:start / workbench:end markers) is
 # stripped and re-appended at the end of AGENTS.md on every run. Your own edits
 # outside the markers are never touched, though content you place *after* the
 # block will end up above it after a re-run (relocated, never lost).
@@ -20,12 +20,18 @@ WORKBENCH="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VERSION="$(cat "$WORKBENCH/VERSION" 2>/dev/null || echo "unknown")"
 TODAY="$(date +%Y-%m-%d)"
 LESSONS_DIR="$WORKBENCH/lessons"
-START="<!-- pas:start — managed by personal-agent-system; do not edit inside this block -->"
-END="<!-- pas:end -->"
+START="<!-- workbench:start — managed by Agent-Workbench; do not edit inside this block -->"
+END="<!-- workbench:end -->"
 # Match existing blocks on the STABLE prefix, not the full START text — otherwise
 # editing the START wording between versions would leave old blocks unrecognised
-# and a re-run would append a duplicate. unadopt.sh uses the same prefix.
-START_PREFIX="<!-- pas:start"
+# and a re-run would append a duplicate. unadopt.sh uses the same prefixes.
+START_PREFIX="<!-- workbench:start"
+# The marker was `pas` before the rename to Agent-Workbench. Projects adopted
+# under the old name still carry it, so both prefixes are recognised when
+# stripping: a re-run MIGRATES an old block instead of appending a second one.
+# Do not remove these until no adopted project carries the old marker.
+LEGACY_START_PREFIX="<!-- pas:start"
+LEGACY_END="<!-- pas:end -->"
 
 # ---- detect stack -------------------------------------------------------------
 cd "$PROJECT"
@@ -100,7 +106,7 @@ done
 
 # ---- build the managed block --------------------------------------------------
 block="$START
-## Inherited from personal-agent-system (v${VERSION}, imported ${TODAY})
+## Inherited from Agent-Workbench (v${VERSION}, imported ${TODAY})
 
 <!-- Rules and lessons here are copied from the workbench. Edit them at the
      source and re-run scripts/adopt.sh; edits made inside this block are lost. -->
@@ -131,10 +137,10 @@ fi
 
 # ---- replace the managed block idempotently -----------------------------------
 # Strip any existing block, then append the fresh one.
-awk -v s="$START_PREFIX" -v e="$END" '
-  index($0,s){skip=1}
+awk -v s="$START_PREFIX" -v ls="$LEGACY_START_PREFIX" -v e="$END" -v le="$LEGACY_END" '
+  index($0,s) || index($0,ls){skip=1}
   !skip{print}
-  index($0,e){skip=0; next}
+  index($0,e) || index($0,le){skip=0; next}
 ' AGENTS.md > AGENTS.md.tmp
 
 # drop trailing blank lines, then append block with one separating blank line
@@ -150,6 +156,6 @@ elif ! grep -q '@AGENTS.md' CLAUDE.md; then
   echo "note: CLAUDE.md exists without '@AGENTS.md' — left as-is. Add it manually if you want AGENTS.md loaded."
 fi
 
-echo "adopted personal-agent-system v${VERSION} into $PROJECT"
+echo "adopted Agent-Workbench v${VERSION} into $PROJECT"
 echo "  stack:  ${det# }"
 echo "  lessons inlined: $(printf '%s' "$matched" | grep -c '^-' || true)"

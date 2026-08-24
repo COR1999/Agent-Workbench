@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Machine setup for personal-agent-system. Run once per machine; re-run after a
+# Machine setup for Agent-Workbench. Run once per machine; re-run after a
 # `git pull` to refresh. Idempotent. Does two things:
 #
 #   1. Installs the skills into each harness's skills dir (symlink, copy fallback).
@@ -54,16 +54,21 @@ done
 # a lesson about. A copy always resolves. Re-run this script to refresh after
 # editing the repo's AGENTS.md.
 CLAUDE_MD="$HOME/.claude/CLAUDE.md"
-START="<!-- pas-rules:start — managed by personal-agent-system; edit AGENTS.md at the source and re-run install.sh -->"
-END="<!-- pas-rules:end -->"
+START="<!-- workbench-rules:start — managed by Agent-Workbench; edit AGENTS.md at the source and re-run install.sh -->"
+END="<!-- workbench-rules:end -->"
+# Machines set up before the rename carry the old `pas-rules` markers. Both are
+# stripped, so a re-run migrates the block rather than leaving a stale duplicate
+# of the rules loaded into every session alongside the new one.
+LEGACY_START="<!-- pas-rules:start"
+LEGACY_END="<!-- pas-rules:end -->"
 
 if [ -d "$HOME/.claude" ]; then
   [ -f "$CLAUDE_MD" ] || : > "$CLAUDE_MD"
   # strip any existing managed block
-  awk -v s="$START" -v e="$END" '
-    index($0,s){skip=1}
+  awk -v s="$START" -v ls="$LEGACY_START" -v e="$END" -v le="$LEGACY_END" '
+    index($0,s) || index($0,ls){skip=1}
     !skip{print}
-    index($0,e){skip=0; next}
+    index($0,e) || index($0,le){skip=0; next}
   ' "$CLAUDE_MD" > "$CLAUDE_MD.tmp"
   sed -e :a -e '/^[[:space:]]*$/{$d;N;ba}' "$CLAUDE_MD.tmp" > "$CLAUDE_MD"
   rm -f "$CLAUDE_MD.tmp"
@@ -79,4 +84,4 @@ fi
 
 echo "done."
 echo "  verify skills: ls -l \"${TARGETS[0]}\""
-echo "  verify rules:  grep pas-rules \"$CLAUDE_MD\""
+echo "  verify rules:  grep workbench-rules \"$CLAUDE_MD\""
