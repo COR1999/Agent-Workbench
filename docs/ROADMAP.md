@@ -321,8 +321,10 @@ a known 0/9 baseline — not "which wording worked".
 
 **Now**
 
-- Rename `pas` / `personal-agent-system` → Agent-Workbench (#3). It gets harder
-  with every project adopted; today is the cheapest it will ever be.
+- ~~Rename `pas` / `personal-agent-system` → Agent-Workbench (#3).~~ **Done
+  2026-08-23.** The marker is now `workbench`; both scripts still recognise the
+  old `pas` markers when stripping, so an adopted project migrates in place on
+  the next run instead of gaining a duplicate block.
 - Skill evolution (#40) promoted from future to live — it *is* the rewrite
   experiment.
 

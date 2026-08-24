@@ -25,11 +25,11 @@ two files would already tell you.>
 ## Rules
 
 <Project-specific only. Things that are true here and would be false or
-meaningless elsewhere. Machine-wide rules live in personal-agent-system/AGENTS.md.>
+meaningless elsewhere. Machine-wide rules live in Agent-Workbench/AGENTS.md.>
 
 ## Inherited lessons
 
-<!-- from personal-agent-system/lessons — edit the source, not this copy -->
+<!-- from Agent-Workbench/lessons — edit the source, not this copy -->
 
 - **<slug>** (<YYYY-MM>) — <one-line claim>
 

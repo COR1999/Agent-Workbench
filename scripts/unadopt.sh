@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Remove personal-agent-system's managed block from a project's AGENTS.md.
+# Remove Agent-Workbench's managed block from a project's AGENTS.md.
 # Leaves everything you wrote yourself intact. Does not delete AGENTS.md or
 # CLAUDE.md — those may hold your own content.
 #
@@ -10,24 +10,28 @@ PROJECT="${1:-}"
 [ -n "$PROJECT" ] && [ -d "$PROJECT" ] || { echo "usage: unadopt.sh <project-dir>"; exit 1; }
 cd "$PROJECT"
 
-START="<!-- pas:start"
-END="<!-- pas:end -->"
+START="<!-- workbench:start"
+END="<!-- workbench:end -->"
+# Projects adopted before the rename carry the old `pas` marker. unadopt must
+# remove those too, or it would report success and leave the block in place.
+LEGACY_START="<!-- pas:start"
+LEGACY_END="<!-- pas:end -->"
 
-if [ ! -f AGENTS.md ] || ! grep -qF "$START" AGENTS.md; then
+if [ ! -f AGENTS.md ] || { ! grep -qF "$START" AGENTS.md && ! grep -qF "$LEGACY_START" AGENTS.md; }; then
   echo "nothing to remove — no managed block in $PROJECT/AGENTS.md"
   exit 0
 fi
 
-awk -v s="$START" -v e="$END" '
-  index($0,s){skip=1}
+awk -v s="$START" -v ls="$LEGACY_START" -v e="$END" -v le="$LEGACY_END" '
+  index($0,s) || index($0,ls){skip=1}
   !skip{print}
-  index($0,e){skip=0; next}
+  index($0,e) || index($0,le){skip=0; next}
 ' AGENTS.md > AGENTS.md.tmp
 # collapse any trailing blank lines left behind
 sed -e :a -e '/^[[:space:]]*$/{$d;N;ba}' AGENTS.md.tmp > AGENTS.md
 rm -f AGENTS.md.tmp
 printf '\n' >> AGENTS.md
 
-echo "removed the personal-agent-system block from $PROJECT/AGENTS.md"
+echo "removed the Agent-Workbench block from $PROJECT/AGENTS.md"
 echo "note: AGENTS.md and CLAUDE.md were kept (they may hold your own content)."
 echo "note: machine-level skills are unaffected — remove those with your harness's skills dir."

@@ -88,7 +88,7 @@ docs/
 - **Main branch only.** Solo operator, gated steps — the gates are the safety, not
   branches. Releases are tags on `main`. A `dev` branch would be ceremony.
 - **Pinning is zero-cost.** Every project records the version it imported from in
-  one line — `## Inherited from personal-agent-system (v0.1.0, imported …)` —
+  one line — `## Inherited from Agent-Workbench (v0.1.0, imported …)` —
   written by `adopt.sh`. Lessons additionally carry their own `(slug, date)`
   markers. Together these make a future staleness check a `grep`, not a rewrite.
 
@@ -203,7 +203,7 @@ contract:
 | | What happens |
 |---|---|
 | **Detected** | The project's stack, from `package.json` / `tsconfig.json` / source (the closed `applies-to` vocabulary). |
-| **Copied into the project** | Nothing as separate files. The managed block is written *into* `AGENTS.md`: the matched lessons, the record-work reminder, and the version marker — between `<!-- pas:start -->` / `<!-- pas:end -->`. |
+| **Copied into the project** | Nothing as separate files. The managed block is written *into* `AGENTS.md`: the matched lessons, the record-work reminder, and the version marker — between `<!-- workbench:start -->` / `<!-- workbench:end -->`. |
 | **Symlinked** | Nothing per-project. Skills are machine-level (see install). |
 | **Added to `AGENTS.md`** | The managed block only. Anything outside the markers is never touched. |
 | **`CLAUDE.md`** | Created as `@AGENTS.md` if absent; if it exists without that line, left alone with a note. |
@@ -256,7 +256,10 @@ This repo is public. The rules that keep it publishable:
    validation doc is captured from client work, genericize it then — not in a
    future scrub pass.
 
-The import tooling (`adopt.sh`, installed blocks) uses the internal marker
-prefix `pas` / "personal-agent-system" — the project's original name. Renaming
-that throughout is tracked as an issue; it touches already-adopted projects, so
-it's a deliberate future pass, not a blind find-replace.
+The import tooling uses the marker prefix `workbench` (`<!-- workbench:start -->`
+in a project's `AGENTS.md`, `<!-- workbench-rules:start -->` in the machine-wide
+`CLAUDE.md`). The project's original name was `personal-agent-system` and the
+original prefix was `pas`; both scripts still **recognise the old markers when
+stripping**, so re-running `adopt.sh` or `install.sh` migrates an old block in
+place rather than appending a second one. That legacy handling stays until no
+adopted project carries the old marker.
