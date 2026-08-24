@@ -20,13 +20,13 @@ jobs:
       - name: skill invariants
         run: bash tests/skill-invariants.sh
 
-      # preflight-public.sh lands with the sanitize-for-public-release PR.
-      # Guarded so this workflow merges independently; the check activates
-      # automatically once the script is present on main.
+      - name: import contract (adopt/unadopt, incl. legacy marker migration)
+        run: bash tests/import-migration.sh
+
+      # Unguarded on purpose. This step used to be wrapped in "if the script
+      # exists", from when it had not landed on main yet. That guard outlived its
+      # reason and became a way for the check to silently not run: rename or
+      # delete the script and CI would report success. A gate that can pass by
+      # being absent is not a gate.
       - name: public-tree preflight (no client identifiers)
-        run: |
-          if [ -f scripts/preflight-public.sh ]; then
-            bash scripts/preflight-public.sh
-          else
-            echo "scripts/preflight-public.sh not present yet — skipping until it lands on main."
-          fi
+        run: bash scripts/preflight-public.sh
