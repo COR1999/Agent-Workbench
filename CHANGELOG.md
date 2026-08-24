@@ -7,6 +7,71 @@ judgement or the import contract changed in a way that could alter results;
 Skills install once per machine, so only one version is ever active — versions
 exist for communication and rollback, not concurrent use.
 
+## [0.8.0] — 2026-08-24
+
+The release that made the library measurable, and then reported what the
+measurement said.
+
+### Added
+- **`scripts/skill-usage-scan.py`** — counts skill firings across every local
+  agent store (Claude-family JSONL and OpenCode's SQLite), with an artifact test
+  for whether a firing helped, an inverse test for opportunities not taken, and a
+  context column separating task-routed firings from library-invoked ones.
+- **`scripts/build-replay-set.py`** — turns past sessions into labelled routing
+  examples with a fixed 70/30 train/holdout split, so the thesis can be tested
+  against history instead of waiting for new sessions.
+- **`scripts/lesson-audit.py`** — the AND-matching revisit that was overdue since
+  entry 15, as a script rather than an opinion. `--check` gates the ledger in CI.
+- **`tests/import-migration.sh`** and **`tests/install-smoke.sh`** — the import and
+  install contracts, including a throwaway-`HOME` test for the one script that
+  previously could not be tested without modifying the real machine.
+- **Cross-platform CI** — every guard on ubuntu, macOS and Windows.
+- **`skills/capture-lesson/tests/candidates.md`** — a fixture corpus for the
+  four-part test, weighted on refusals.
+- Field `VALIDATION.md` for the seven skills that had none, each stating what it
+  does *not* establish.
+- Lessons: `copy-fallback-freezes-the-install`,
+  `gnu-sed-idioms-empty-files-on-bsd`.
+- **`docs/ROADMAP.md`** — the single store for the project's decisions,
+  auto-loaded into every session here via `CLAUDE.md`.
+- `AGENTS.md` rule: name the lesson slug in the work record when a lesson changes
+  what you do.
+
+### Fixed
+- **A GNU-only `sed` idiom emptied `AGENTS.md` on macOS.** Adopting a project on a
+  Mac destroyed everything outside the managed block while reporting success.
+  Found by the cross-platform matrix on its first run.
+- **`adopt.sh` never read a lesson's `status`.** The staleness table has always
+  said a superseded lesson must never inline; nothing implemented it, so a claim
+  proven false would have kept being copied into every matching project.
+- **Eight real repository names were in this public tree**, and
+  `preflight-public.sh` had failed on *every run it ever had* — it scanned `.git/`
+  and the gitignored `.research/`, so it was dismissed as a known false positive.
+  It now scans tracked files, exits clean, and runs unconditionally in CI.
+- **Four lessons could never match any project** — they named values `adopt.sh`
+  could not detect. Detection added for `postgres`, `webhooks`, `opencode` and
+  `multi-agent`; unreachable lessons now 0.
+- **Four lessons were missing from the README index**, which showed 19 of 23.
+- `next-og-imageresponse-windows` **falsified** by building it on next@16.3.2 and
+  marked superseded.
+- The frozen design spec still said "Nothing implemented" at v0.7.0.
+
+### Changed
+- The measured answer to the project's own claim. Counting firings said "8 of 9
+  skills have fired". Counting *applicable situations* says the library is reached
+  in roughly **one in ten** — 94% missed on train, 88% on holdout, stable across
+  every attribution window tried. Recorded in `docs/ROADMAP.md`, along with the
+  two earlier answers and why each was wrong.
+- Three skill descriptions retuned to lead with the model-detectable moment rather
+  than the human's phrasing, with the baseline and the losing condition written
+  down in advance.
+
+### Notes
+- **Tags v0.5.0 through v0.7.0 were cut retrospectively on 2026-08-24.** The
+  CHANGELOG declared those releases but no tag existed, so the rollback path the
+  README promises did not exist for three versions. Each tag points at the commit
+  where `VERSION` became that number.
+
 ## [0.7.0] — 2026-08-23
 
 ### Changed
