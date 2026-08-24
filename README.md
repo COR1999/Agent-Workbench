@@ -177,6 +177,10 @@ context and does not belong here.
 | [stacked-pr-base-deletion-cascade](lessons/stacked-pr-base-deletion-cascade.md) | `github-actions` | Deleting a stacked PR's base branch auto-closes every PR above it and they can't be reopened |
 | [shadcn-pin-tailwind-v3](lessons/shadcn-pin-tailwind-v3.md) | `shadcn`, `tailwind-v3` | Pin the shadcn CLI; `@latest` emits Tailwind-v4-only CSS |
 | [vitest-fork-timeout-windows](lessons/vitest-fork-timeout-windows.md) | `vitest`, `windows` | vitest's forks pool can hang on Windows; use `--no-file-parallelism` |
+| [agent-sessions-live-in-multiple-stores](lessons/agent-sessions-live-in-multiple-stores.md) | `windows`, `multi-agent` | One agent window can be several backends with separate session stores; "not in store X" means wrong store, not no session |
+| [hydration-recovery-leaves-stale-attributes](lessons/hydration-recovery-leaves-stale-attributes.md) | `react`, `nextjs` | Hydration-mismatch recovery re-renders but leaves stale DOM attributes behind |
+| [next-build-vs-live-dev-corrupts-dot-next](lessons/next-build-vs-live-dev-corrupts-dot-next.md) | `nextjs` | `next build` against a running `next dev` server corrupts both; stop dev first |
+| [opencode-env-keys-resolve-at-startup](lessons/opencode-env-keys-resolve-at-startup.md) | `opencode`, `windows` | Provider `{env:VAR}` keys resolve once at agent-server startup, not per request |
 
 Writing a new one: `templates/lesson.md`. It carries the four-part test and the
 closed `applies-to` vocabulary. Apply the test honestly — the ledger is worth

@@ -165,11 +165,73 @@ def detect_project(project):
     return found
 
 
+def readme_linked_slugs():
+    """Slugs listed as ROWS of the README lessons table.
+
+    Scoped to table rows on purpose. Matching any link to `lessons/` counted a
+    passing prose mention elsewhere in the README as an index entry, so a lesson
+    could be missing from the table and still pass — which is precisely the drift
+    this is meant to catch. Verified by removing a row and confirming the check
+    fails.
+    """
+    text = (REPO / "README.md").read_text(encoding="utf-8")
+    return set(re.findall(r"^\|\s*\[[^\]]+\]\(lessons/([a-z0-9-]+)\.md\)",
+                          text, flags=re.MULTILINE))
+
+
+def run_checks(entries, detectable, declared):
+    """Fail on the drift this ledger can accumulate silently.
+
+    Each of these was a real state of the repository, not a hypothetical:
+    lessons naming values nothing could detect, values in use that the "closed"
+    vocabulary never declared, and four lessons on disk that the README index
+    had never listed. None of it produced an error anywhere.
+    """
+    problems = []
+    used = {v for e in entries for v in e["applies_to"]}
+
+    for entry in entries:
+        if not entry["applies_to"]:
+            problems.append("%s: no applies-to values could be parsed from its "
+                            "frontmatter" % entry["slug"])
+
+    for value in sorted(used - declared):
+        problems.append("value %r is used by a lesson but not declared in "
+                        "templates/lesson.md" % value)
+
+    for entry in entries:
+        blocking = [v for v in entry["applies_to"] if v not in detectable]
+        if blocking:
+            problems.append("%s can never match any project: adopt.sh cannot "
+                            "detect %s" % (entry["slug"], ", ".join(blocking)))
+
+    linked = readme_linked_slugs()
+    for slug in sorted({e["slug"] for e in entries} - linked):
+        problems.append("%s is in lessons/ but absent from the README table"
+                        % slug)
+    for slug in sorted(linked - {e["slug"] for e in entries}):
+        problems.append("%s is linked from the README but has no lesson file"
+                        % slug)
+    return problems
+
+
 def main():
-    projects = sys.argv[1:]
+    argv = [a for a in sys.argv[1:] if a != "--check"]
+    check_mode = "--check" in sys.argv[1:]
+    projects = argv
     detectable = detectable_values()
     declared = vocabulary_values()
     entries = lessons()
+
+    if check_mode:
+        problems = run_checks(entries, detectable, declared)
+        if problems:
+            print("lesson-audit --check: %d problem(s)" % len(problems))
+            for problem in problems:
+                print("  FAIL  " + problem)
+            return 1
+        print("lesson-audit --check: ledger consistent (%d lessons)" % len(entries))
+        return 0
 
     print("LEDGER: %d lessons" % len(entries))
     print("adopt.sh can detect %d values; the template declares %d\n"

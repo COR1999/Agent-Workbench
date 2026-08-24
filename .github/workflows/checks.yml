@@ -52,3 +52,10 @@ jobs:
       # Content-only, so it runs once rather than per-platform.
       - name: public-tree preflight (no client identifiers)
         run: bash scripts/preflight-public.sh
+
+      # The ledger drifts silently: lessons naming values nothing can detect,
+      # values in use that the "closed" vocabulary never declared, and lessons on
+      # disk that the README index never listed. All three were real states of
+      # this repository and none produced an error anywhere.
+      - name: lesson ledger consistency
+        run: python scripts/lesson-audit.py --check
