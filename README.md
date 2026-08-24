@@ -96,10 +96,20 @@ docs/
 
 ```
 bash tests/skill-invariants.sh
+bash tests/import-migration.sh
 ```
 
-Locks each skill's load-bearing rules so they can't be silently edited out of a
-`SKILL.md`. Exit 0 = all held. No build step, no dependencies.
+`skill-invariants` locks each skill's load-bearing rules so they can't be silently
+edited out of a `SKILL.md`.
+
+`import-migration` locks the import contract: `adopt.sh` and `unadopt.sh` must
+handle both the current `workbench` markers and the legacy `pas` ones, and must
+never touch a byte outside the managed block. Drop the legacy handling and an
+already-adopted project silently gains a **second** block — two contradictory sets
+of inlined lessons, both valid markdown, script still exits 0. That is the
+regression this test exists to catch, and it was confirmed to catch it.
+
+Exit 0 = all held. No build step, no dependencies.
 
 ## Working across sessions
 
