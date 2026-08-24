@@ -25,3 +25,8 @@ node_modules/
 
 # skill-usage scan output: raw prompts from client work; never commit
 .usage/
+
+# Python bytecode. build-replay-set.py imports the scanner by path, which
+# compiles it — a `git add -A` swept the result into the tree once already.
+__pycache__/
+*.pyc
