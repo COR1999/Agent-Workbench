@@ -63,7 +63,7 @@ VERSION            the workbench version, stamped into projects on import
 CHANGELOG.md       what changed between versions
 lessons/           conditional knowledge — true when applies-to matches
 templates/         lesson.md, project-AGENTS.md
-skills/            nine skills (each SKILL.md; validated ones + VALIDATION.md)
+skills/            nine skills (each SKILL.md + VALIDATION.md)
 scripts/
   install.sh       machine setup: install skills into the harness skills dirs
   adopt.sh         per-project import (idempotent)
@@ -181,8 +181,14 @@ having only while every entry changes what an agent does.
 | [grilling](skills/grilling/SKILL.md) | Before implementation — "grill this plan", "what am I assuming" | Interviews a plan/spec as a design tree to surface hidden decisions. Interrogates, never builds. |
 | [agentic-vocabulary](skills/agentic-vocabulary/SKILL.md) | When an agentic term is unfamiliar/overloaded | Reference glossary — look a term up instead of inventing its meaning. |
 
-Each skill's `VALIDATION.md` records how it was tested against real repository
-history. Install with `scripts/install.sh` (once per machine — skills need no
+Each skill's `VALIDATION.md` records the evidence behind it, and there are two
+kinds. **Corpus** validation (`deslop`, `sweep-the-class`) tests the skill against
+fixture sets drawn from real repository history — behaviour on cases someone
+chose. **Field** validation (the other seven) reports what happened when the skill
+actually ran, recovered from session transcripts by `scripts/skill-usage-scan.py`
+— behaviour on cases nobody chose, which cannot cover what never occurred.
+Neither is stronger in general. Every one of them states what it does *not*
+establish, including the three that rest on a single observation. Install with `scripts/install.sh` (once per machine — skills need no
 per-project step).
 
 ## Installing (once per machine)
