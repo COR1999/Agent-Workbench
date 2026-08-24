@@ -262,24 +262,45 @@ what let the two skills with no output at all get labels:
 
 Both labels come from what the session **did**, never from an opinion about it.
 
-### First build (2026-08-23): 19 labelled sessions
+### Build (2026-08-24): 83 labelled sessions
 
 | Skill | Applicable | Fired | Missed |
 |---|---|---|---|
-| `deslop` | 11 | 0 | **11** |
-| `explain-and-open-pr` | 11 | 2 | 9 |
-| `sweep-the-class` | 10 | 2 | 8 |
-| `capture-lesson` | 5 | 1 | 4 |
-| `tdd` | 3 | 0 | 3 |
-| `handoff` | 2 | 1 | 1 |
+| `sweep-the-class` | 58 | 2 | **97%** |
+| `deslop` | 15 | 0 | **100%** |
+| `explain-and-open-pr` | 15 | 2 | 87% |
+| `capture-lesson` | 9 | 1 | 89% |
+| `tdd` | 3 | 0 | 100% |
+| `handoff` | 2 | 1 | 50% |
+| **Overall** | **102** | **6** | **94%** |
 
-(train split; holdout held 3 further sessions)
+(train split; holdout: 41 applicable situations, 88% missed — the same picture, so
+this is not an artefact of the split)
 
-**The honest headline: the library is reached in roughly one situation in seven
-where it applies.** `deslop` has never once fired in a session where it was
-applicable. Every earlier framing in this document — "8 of 9 skills have fired",
-"the thesis holds" — was measuring the wrong denominator. Firing at all is not the
-question. Firing *when it applies* is.
+**Report the rate, never the count.** The corpus size depends on an arbitrary
+constant — how long after a session ends its commits still count as its own — and
+that constant moves the counts by 4x:
+
+| Window | Labelled | Applicable | Missed | Miss rate |
+|---|---|---|---|---|
+| 0h | 21 | 58 | 47 | 81% |
+| 1h | 37 | 87 | 76 | 87% |
+| **2h (default)** | **83** | **143** | **132** | **92%** |
+| 6h | 94 | 174 | 162 | 93% |
+| 24h | 99 | 185 | 173 | 94% |
+
+The counts quadruple. The rate moves 13 points and never drops below 81%. Any
+absolute number in this document is a function of that constant; the rate is the
+finding.
+
+**So: the library is missed in roughly nine of every ten situations where it
+applies, under every window tried, in both train and holdout.** That is the state
+of the thesis. It is not "8 of 9 skills have fired" and never was.
+
+One caveat kept visible: `sweep-the-class` is labelled applicable whenever a
+session's commit subjects mention a fix, which is broad — a one-line typo fix
+counts. Its 97% is the least trustworthy row here, and it is also the row with the
+most examples.
 
 ### Guards, because this loop can lie to you
 
@@ -296,11 +317,16 @@ question. Firing *when it applies* is.
    improved.** That converges on self-agreement. The judgement step needs either
    the objective label or a human.
 
-### The corpus is thin, and that is the limit
+### The corpus, and what it still cannot do
 
-19 labelled sessions, 3 in holdout. Enough to see a pattern, not enough to trust a
-tuning result. It grows with real work — which is the one input no amount of
-building can substitute for.
+83 labelled sessions, 22 in holdout — enough to tune against and to check the
+result on data that was not tuned on. It grows with real work.
+
+What it still cannot do: judge whether a *rewritten* description would have caught
+a missed example. That requires a model, and guard 5 forbids the model that wrote
+the description from also scoring it. The material is prepared — every missed
+example carries its prompt in the output file — but the judging step needs either
+a fresh evaluator or the human.
 
 ## The trial (#12)
 

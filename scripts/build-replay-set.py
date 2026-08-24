@@ -33,6 +33,26 @@ self-agreement rather than on quality. The guards that make the loop honest:
    broad enough to catch every example is worthless - it will also fire on
    everything else.
 
+SENSITIVITY OF THE WINDOW, MEASURED
+-----------------------------------
+A session's commits often land just after its last recorded event, so the window
+in which a commit still counts as the session's own changes the corpus size
+enormously. Measured across all local sessions:
+
+    window   labelled sessions   applicable pairs   missed pairs   missed rate
+      0h            21                  58               47           81%
+      1h            37                  87               76           87%
+      2h            83                 143              132           92%
+      6h            94                 174              162           93%
+     24h            99                 185              173           94%
+
+The COUNTS are not robust - they quadruple between 0h and 2h. The RATE is: the
+library is missed in 81-94% of applicable situations under every window tried.
+Report the rate. Treat any absolute count as a function of an arbitrary constant.
+
+Default is 2h: past it the corpus barely grows, while the risk of crediting a
+session with unrelated later commits keeps rising.
+
 Output is gitignored: it contains raw prompts from client work.
 
 Usage:
@@ -208,6 +228,10 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", default=".usage/replay-set.jsonl",
                         help="Gitignored; contains raw prompts.")
+    parser.add_argument("--window-hours", type=int, default=2,
+                        help="Hours after a session ends in which its commits "
+                             "still count as its own. See the sensitivity note "
+                             "in the module docstring.")
     args = parser.parse_args()
 
     scan = load_scanner()
@@ -220,13 +244,13 @@ def main():
     for (store, sid), entry in sessions.items():
         if not entry["prompts"] or not entry["repo"] or entry["start"] is None:
             continue
-        change = scan.git_changes(entry["repo"], entry["start"],
-                                  (entry["end"] or entry["start"]) + 1)
+        window_end = ((entry["end"] or entry["start"]) + 1
+                      + args.window_hours * 3600)
+        change = scan.git_changes(entry["repo"], entry["start"], window_end)
         if change is None:
             continue
         change = dict(change, session_edited=entry["edited"])
-        subjects = commit_subjects(entry["repo"], entry["start"],
-                                   (entry["end"] or entry["start"]) + 1)
+        subjects = commit_subjects(entry["repo"], entry["start"], window_end)
         applicable = [name for name, check in scan.ARTIFACTS.items() if check(change)]
         applicable += applicable_extra(change, subjects, entry["edited"])
         applicable = sorted(set(applicable))
@@ -258,8 +282,14 @@ def main():
         hit = Counter(s for r in subset for s in r["applicable"] if s in r["fired"])
         for skill in sorted(set(missed) | set(hit)):
             total = missed[skill] + hit[skill]
-            print("  %-22s applicable=%-3d fired=%-3d MISSED=%d"
-                  % (skill, total, hit[skill], missed[skill]))
+            rate = (100.0 * missed[skill] / total) if total else 0.0
+            print("  %-22s applicable=%-3d fired=%-3d MISSED=%-3d (%.0f%% missed)"
+                  % (skill, total, hit[skill], missed[skill], rate))
+        pairs = sum(len(r["applicable"]) for r in subset)
+        gone = sum(len(r["missed"]) for r in subset)
+        if pairs:
+            print("  %-22s %d of %d applicable situations missed (%.0f%%)"
+                  % ("OVERALL", gone, pairs, 100.0 * gone / pairs))
     print("\nwritten to %s" % out)
     print("Tune against TRAIN only. A gain that does not reproduce in HOLDOUT is "
           "overfitting to history.")
