@@ -297,10 +297,19 @@ finding.
 applies, under every window tried, in both train and holdout.** That is the state
 of the thesis. It is not "8 of 9 skills have fired" and never was.
 
-One caveat kept visible: `sweep-the-class` is labelled applicable whenever a
-session's commit subjects mention a fix, which is broad — a one-line typo fix
-counts. Its 97% is the least trustworthy row here, and it is also the row with the
-most examples.
+**The `sweep-the-class` row was suspected of inflation, tested, and survived.**
+Its label was "a commit subject mentions a fix", broad enough that a typo fix in a
+README would count. It was sharpened to require that the fix touched a *source*
+file which has at least two siblings of the same kind in its directory — the
+precondition for a class to exist elsewhere at all, which is the only situation
+the skill claims to serve.
+
+That removed 2 sessions out of 83. Train stayed at 58 applicable, holdout went
+22 → 20, and the rate did not move. The row is real: nearly every fix in these
+repositories touched source code sitting alongside plausible siblings.
+
+A negative result, reported because it is one — the sharpening was expected to cut
+that row down and did not.
 
 ### Guards, because this loop can lie to you
 

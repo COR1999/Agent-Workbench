@@ -98,11 +98,58 @@ def load_scanner():
 # the property that keeps the loop honest.
 FIX_WORDS = ("fix", "bug", "hotfix", "patch", "regression", "broken", "crash")
 
+# Source extensions. A fix to a README is not a fix whose class can recur at
+# another call site.
+SOURCE_EXT = {".ts", ".tsx", ".js", ".jsx", ".py", ".go", ".rs", ".java", ".rb",
+              ".php", ".cs", ".sql", ".sh", ".mjs", ".cjs", ".vue", ".svelte"}
 
-def applicable_extra(change, subjects, edited):
+_repo_files = {}
+
+
+def repo_files(repo):
+    """Tracked paths in the repository, cached. Used to ask whether a fixed file
+    even HAS siblings — the precondition for a class to exist elsewhere."""
+    import subprocess
+    key = str(repo)
+    if key in _repo_files:
+        return _repo_files[key]
+    try:
+        out = subprocess.run(["git", "-C", key, "ls-files"],
+                             capture_output=True, text=True, timeout=30)
+        files = out.stdout.splitlines() if out.returncode == 0 else []
+    except (OSError, subprocess.SubprocessError):
+        files = []
+    _repo_files[key] = files
+    return files
+
+
+def has_siblings(repo, path):
+    """Does the fixed file sit alongside others of its kind?
+
+    sweep-the-class asks "did I fix the instance or the class?". If the changed
+    file is the only one of its type in its directory, there is no class to
+    sweep, and counting that session as a missed opportunity is unfair to the
+    skill. This is the difference between "a fix happened" and "a fix happened
+    somewhere a sibling could plausibly share the defect".
+    """
+    suffix = pathlib.PurePosixPath(path).suffix
+    parent = str(pathlib.PurePosixPath(path).parent)
+    siblings = [f for f in repo_files(repo)
+                if f != path
+                and str(pathlib.PurePosixPath(f).parent) == parent
+                and pathlib.PurePosixPath(f).suffix == suffix]
+    return len(siblings) >= 2
+
+
+def applicable_extra(change, subjects, edited, repo):
     found = []
-    if any(any(word in subject.lower() for word in FIX_WORDS) for subject in subjects):
-        found.append("sweep-the-class")
+    fixish = any(any(word in subject.lower() for word in FIX_WORDS)
+                 for subject in subjects)
+    if fixish:
+        touched_source = [p for p in change["paths"]
+                          if pathlib.PurePosixPath(p).suffix in SOURCE_EXT]
+        if any(has_siblings(repo, p) for p in touched_source):
+            found.append("sweep-the-class")
     if edited and change["commits"] > 0:
         found.append("deslop")
     return found
@@ -252,7 +299,8 @@ def main():
         change = dict(change, session_edited=entry["edited"])
         subjects = commit_subjects(entry["repo"], entry["start"], window_end)
         applicable = [name for name, check in scan.ARTIFACTS.items() if check(change)]
-        applicable += applicable_extra(change, subjects, entry["edited"])
+        applicable += applicable_extra(change, subjects, entry["edited"],
+                                       entry["repo"])
         applicable = sorted(set(applicable))
         if not applicable:
             continue
