@@ -98,6 +98,7 @@ docs/
 ```
 bash tests/skill-invariants.sh
 bash tests/import-migration.sh
+bash tests/install-smoke.sh
 ```
 
 `skill-invariants` locks each skill's load-bearing rules so they can't be silently
@@ -110,7 +111,20 @@ already-adopted project silently gains a **second** block — two contradictory 
 of inlined lessons, both valid markdown, script still exits 0. That is the
 regression this test exists to catch, and it was confirmed to catch it.
 
+`install-smoke` covers the one script that used to be untestable. `install.sh` is
+the only script that writes *outside* a project — skills into the harness
+directories, machine rules into `~/.claude/CLAUDE.md` — so testing it meant
+modifying the real machine. It runs against a throwaway `HOME` instead, and locks
+that a legacy rules block is migrated rather than appended alongside: two copies
+of the machine rules would load into every session, and nothing would report it.
+
 Exit 0 = all held. No build step, no dependencies.
+
+All three run in CI on **ubuntu, macOS and Windows**. That matrix earned itself on
+its first run: a GNU-only `sed` idiom used to trim trailing blank lines emitted an
+*empty* file under BSD `sed`, so on macOS adopting a project destroyed that
+project's `AGENTS.md` while reporting success. See
+[gnu-sed-idioms-empty-files-on-bsd](lessons/gnu-sed-idioms-empty-files-on-bsd.md).
 
 ## Working across sessions
 
