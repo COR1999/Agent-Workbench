@@ -61,6 +61,8 @@ detection signal here.
 |---|---|
 | `windows` | the machine, not the repo |
 | `macos` | the machine, not the repo |
+| `opencode` | the machine has an OpenCode config or data directory |
+| `multi-agent` | the machine has two or more harness directories |
 | `node` | `package.json` exists |
 | `python` | `pyproject.toml` / `requirements.txt` exists |
 | `typescript` | `tsconfig.json` exists |
@@ -92,8 +94,11 @@ Prefer the narrowest accurate set. `[nextjs, windows]` matches fewer projects
 than `[nextjs]`, and that is the point — a lesson that matches everything is a
 rule, and a lesson that matches nothing is dead weight.
 
-**The auto-detector (`scripts/adopt.sh`) covers a subset of this vocabulary.**
-Most values are detected; a few structural ones (`postgres`, `webhooks`) are not,
+**The auto-detector (`scripts/adopt.sh`) covers this vocabulary.** `postgres` and
+`webhooks` were added 2026-08 (they had been declared but undetected, so lessons
+using them could never match). Run `scripts/lesson-audit.py` to check: it reads
+the detectable values out of `adopt.sh` itself and reports any lesson that names
+something undetectable,
 and `supabase` is detected by dependency and directory. A lesson tagged with an
 undetected value will silently never inline — no error, it just won't appear in a
 project. If you add a lesson using an undetected value, add its detection line to

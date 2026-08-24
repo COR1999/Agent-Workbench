@@ -86,10 +86,29 @@ grep -qhsi 'sqlalchemy' "${reqs[@]}" 2>/dev/null && add sqlalchemy
 grep -qhsi 'google-genai\|google-generativeai' "${reqs[@]}" "${pkgs[@]}" 2>/dev/null && add gemini
 
 [ -d .github/workflows ] && add github-actions
+
+# Postgres: a driver in either ecosystem, or SQL migrations on disk.
+grep -qh '"pg"\|"postgres"\|"@vercel/postgres"\|"postgres.js"' "${pkgs[@]}" 2>/dev/null && add postgres
+grep -qhsi 'psycopg\|asyncpg\|postgresql' "${reqs[@]}" 2>/dev/null && add postgres
+{ ls supabase/migrations/*.sql migrations/*.sql db/migrations/*.sql; } >/dev/null 2>&1 && add postgres
+
+# Webhooks: a handler verifying a signature header. The signature check is the
+# detectable part — "a route called webhook" is a naming convention, the
+# verification is the thing the lessons are actually about.
+grep -rqsi 'stripe-signature\|x-hub-signature\|svix-signature\|x-signature-ed25519\|constructEvent'   src app frontend backend web client server 2>/dev/null && add webhooks
+
+# Machine-level values. Detected from the machine, not the repo — same basis as
+# windows/macos below. Without these, lessons about the agent's own environment
+# can never match any project: they are not wrong, they are unreachable, and
+# nothing reports that (see scripts/lesson-audit.py).
+{ [ -d "$HOME/.local/share/opencode" ] || [ -d "$HOME/.config/opencode" ]; } && add opencode
+harnesses=0
+for d in "$HOME/.claude" "$HOME/.agents" "$HOME/.config/opencode"; do
+  [ -d "$d" ] && harnesses=$((harnesses + 1))
+done
+[ "$harnesses" -ge 2 ] && add multi-agent
+
 case "$(uname -s)" in MINGW*|MSYS*|CYGWIN*) add windows;; Darwin) add macos;; esac
-# Not auto-detected (rare / structural): postgres, webhooks. A lesson tagged with
-# one of these will simply never match until detection is added — see the note in
-# templates/lesson.md. No error; it just won't inline.
 
 # ---- match lessons (AND: every applies-to value must be present) ---------------
 matched=""

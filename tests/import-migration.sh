@@ -75,6 +75,26 @@ bash "$REPO/scripts/adopt.sh" "$N" >/dev/null 2>&1
 check "AGENTS.md created with one block" 1 "$(grep -c 'workbench:start' "$N/AGENTS.md" 2>/dev/null || echo 0)"
 check "CLAUDE.md points at AGENTS.md"    1 "$(grep -c '@AGENTS.md' "$N/CLAUDE.md" 2>/dev/null || echo 0)"
 
+echo "adopt.sh — stack detection, positive and negative:"
+# postgres and webhooks were declared in the lesson vocabulary long before
+# adopt.sh could detect them, so any lesson using them was unreachable and
+# nothing said so. Both directions are asserted: a detector that fires on
+# everything is as useless as one that never fires.
+D="$TMP/detect"; mkdir -p "$D/src/app/api/webhook" "$D/supabase/migrations"
+printf '{"dependencies":{"next":"15.0.0","pg":"^8.11.0"}}\n' > "$D/package.json"
+printf 'export async function POST(r){ r.headers.get("stripe-signature"); }\n' \
+  > "$D/src/app/api/webhook/route.ts"
+printf 'create table t (id int);\n' > "$D/supabase/migrations/0001_init.sql"
+stack="$(bash "$REPO/scripts/adopt.sh" "$D" 2>/dev/null | sed -n 's/^  stack: *//p')"
+case "$stack" in *postgres*) ok "postgres detected";; *) fail "postgres not detected";; esac
+case "$stack" in *webhooks*) ok "webhooks detected";; *) fail "webhooks not detected";; esac
+
+B="$TMP/bare"; mkdir -p "$B"
+printf '{"dependencies":{"next":"15.0.0"}}\n' > "$B/package.json"
+bare="$(bash "$REPO/scripts/adopt.sh" "$B" 2>/dev/null | sed -n 's/^  stack: *//p')"
+case "$bare" in *postgres*) fail "postgres false positive on a bare project";; *) ok "no postgres false positive";; esac
+case "$bare" in *webhooks*) fail "webhooks false positive on a bare project";; *) ok "no webhooks false positive";; esac
+
 echo
 if [ "$fails" -eq 0 ]; then
   echo "import contract holds."
