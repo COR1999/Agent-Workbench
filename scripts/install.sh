@@ -70,7 +70,12 @@ if [ -d "$HOME/.claude" ]; then
     !skip{print}
     index($0,e) || index($0,le){skip=0; next}
   ' "$CLAUDE_MD" > "$CLAUDE_MD.tmp"
-  sed -e :a -e '/^[[:space:]]*$/{$d;N;ba}' "$CLAUDE_MD.tmp" > "$CLAUDE_MD"
+  # Drop trailing blank lines. This was `sed -e :a -e '/^[[:space:]]*$/{$d;N;ba}'`,
+  # which is GNU-specific: BSD sed (macOS) parses the label/branch differently and
+  # emptied the file instead of trimming it. Found by the cross-platform CI matrix
+  # (#28) on its first run — every "user content survives" assertion failed on
+  # macOS while passing on Linux and Windows. awk is portable and says what it means.
+  awk '{lines[NR]=$0; if (NF) last=NR} END {for (i=1;i<=last;i++) print lines[i]}' "$CLAUDE_MD.tmp" > "$CLAUDE_MD"
   rm -f "$CLAUDE_MD.tmp"
   {
     printf '\n%s\n' "$START"

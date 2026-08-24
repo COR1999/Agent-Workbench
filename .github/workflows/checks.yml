@@ -12,8 +12,20 @@ on:
     branches: [main]
 
 jobs:
-  guards:
-    runs-on: ubuntu-latest
+  # The scripts are developed on Windows under Git Bash and were only ever run
+  # there and on Ubuntu. The portability claim in the README covers any machine
+  # with bash, and macOS is where that claim is most likely to be false: BSD sed
+  # and BSD find differ from GNU in exactly the places these scripts use them.
+  # Running the matrix is how that stops being an assumption.
+  portability:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v4
 
@@ -23,10 +35,20 @@ jobs:
       - name: import contract (adopt/unadopt, incl. legacy marker migration)
         run: bash tests/import-migration.sh
 
+      - name: install contract (against a throwaway HOME)
+        run: bash tests/install-smoke.sh
+
+  guards:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
       # Unguarded on purpose. This step used to be wrapped in "if the script
       # exists", from when it had not landed on main yet. That guard outlived its
       # reason and became a way for the check to silently not run: rename or
       # delete the script and CI would report success. A gate that can pass by
       # being absent is not a gate.
+      #
+      # Content-only, so it runs once rather than per-platform.
       - name: public-tree preflight (no client identifiers)
         run: bash scripts/preflight-public.sh

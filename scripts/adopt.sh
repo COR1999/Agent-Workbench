@@ -163,7 +163,12 @@ awk -v s="$START_PREFIX" -v ls="$LEGACY_START_PREFIX" -v e="$END" -v le="$LEGACY
 ' AGENTS.md > AGENTS.md.tmp
 
 # drop trailing blank lines, then append block with one separating blank line
-sed -e :a -e '/^[[:space:]]*$/{$d;N;ba}' AGENTS.md.tmp > AGENTS.md
+# Drop trailing blank lines. This was `sed -e :a -e '/^[[:space:]]*$/{$d;N;ba}'`,
+# which is GNU-specific: BSD sed (macOS) parses the label/branch differently and
+# emptied the file instead of trimming it. Found by the cross-platform CI matrix
+# (#28) on its first run — every "user content survives" assertion failed on
+# macOS while passing on Linux and Windows. awk is portable and says what it means.
+awk '{lines[NR]=$0; if (NF) last=NR} END {for (i=1;i<=last;i++) print lines[i]}' AGENTS.md.tmp > AGENTS.md
 rm -f AGENTS.md.tmp
 printf '\n%s\n' "$block" >> AGENTS.md
 
