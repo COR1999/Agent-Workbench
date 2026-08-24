@@ -69,6 +69,7 @@ scripts/
   adopt.sh         per-project import (idempotent)
   unadopt.sh       remove the import from a project
   skill-usage-scan.py  count skill firings across every local agent store
+  build-replay-set.py  turn past sessions into labelled routing examples
 docs/
   ROADMAP.md                     what is being proved now + decisions made
   V0.1_DESIGN_SPECIFICATION.md   the design this was built to

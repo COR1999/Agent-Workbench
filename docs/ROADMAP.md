@@ -243,6 +243,65 @@ task-routed is still zero after a fair run of real work, the description is not
 the lever and the honest conclusion is that these skills need a rule that fires
 them, or need cutting.
 
+## The replay set — testing the thesis without waiting for new sessions
+
+`scripts/build-replay-set.py` turns past sessions into labelled examples. Every
+session already ran an experiment: it has a prompt, and it has an observable
+outcome. If a session ended with a lesson file added, `capture-lesson` was
+applicable to it — whether or not it fired.
+
+**Applicability is a different question from artifact**, and separating them is
+what let the two skills with no output at all get labels:
+
+- **artifact** (scanner) — did the skill produce its own file? Evidence it worked.
+- **applicable** (replay builder) — was this the *kind* of situation the skill
+  exists for? `sweep-the-class` never edits, but a session whose commits describe
+  a fix is objectively one where "did I fix the instance or the class?" was worth
+  asking. `deslop` applies to any generated diff before commit, so a session that
+  edited and committed qualifies.
+
+Both labels come from what the session **did**, never from an opinion about it.
+
+### First build (2026-08-23): 19 labelled sessions
+
+| Skill | Applicable | Fired | Missed |
+|---|---|---|---|
+| `deslop` | 11 | 0 | **11** |
+| `explain-and-open-pr` | 11 | 2 | 9 |
+| `sweep-the-class` | 10 | 2 | 8 |
+| `capture-lesson` | 5 | 1 | 4 |
+| `tdd` | 3 | 0 | 3 |
+| `handoff` | 2 | 1 | 1 |
+
+(train split; holdout held 3 further sessions)
+
+**The honest headline: the library is reached in roughly one situation in seven
+where it applies.** `deslop` has never once fired in a session where it was
+applicable. Every earlier framing in this document — "8 of 9 skills have fired",
+"the thesis holds" — was measuring the wrong denominator. Firing at all is not the
+question. Firing *when it applies* is.
+
+### Guards, because this loop can lie to you
+
+1. **Labels come from outcomes, never opinions.**
+2. **Fixed 70/30 train/holdout split**, hashed on session id so it cannot drift.
+   Tune on train only; a gain that does not reproduce in holdout is overfitting to
+   history.
+3. **The metric is fixed before tuning:** of the applicable-and-did-not-fire
+   examples in holdout, how many would the new description catch. Changing the
+   metric after seeing results is how this kind of loop deceives.
+4. **Sharper, never broader.** A trigger broad enough to catch every example is
+   worthless — it fires on everything else too.
+5. **A model must not both rewrite the trigger and judge whether the result
+   improved.** That converges on self-agreement. The judgement step needs either
+   the objective label or a human.
+
+### The corpus is thin, and that is the limit
+
+19 labelled sessions, 3 in holdout. Enough to see a pattern, not enough to trust a
+tuning result. It grows with real work — which is the one input no amount of
+building can substitute for.
+
 ## The trial (#12)
 
 1. Rewrite descriptions **only where the measured data shows a problem**. The

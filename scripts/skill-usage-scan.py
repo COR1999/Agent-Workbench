@@ -161,9 +161,20 @@ def is_human(text):
                    for marker in NOT_HUMAN)
 
 
-def context_of(user_text):
-    """How the firing was occasioned. Not a verdict; a category for reading."""
+def context_of(user_text, earlier_texts=()):
+    """How the firing was occasioned. Not a verdict; a category for reading.
+
+    Checks the WHOLE session up to the firing, not just the message before it.
+    The first version looked only at the immediately preceding message, so a
+    session opened with "use agent workbench methods" scored every later firing
+    as task-routed. The human pointed this out; it had inflated the headline.
+    Priming persists for the rest of a session - you cannot un-tell a model that
+    the library exists.
+    """
     low = (user_text or "").lower()
+    for earlier in earlier_texts:
+        if any(ref in (earlier or "").lower() for ref in LIBRARY_REFS):
+            return "primed-session"
     if not low:
         return "no-user-text"
     if any(ref in low for ref in LIBRARY_REFS):
@@ -401,7 +412,8 @@ def scan_claude(rows, sessions, stores, window_hours, session_info):
                 "time": stamp,
                 "skill": value,
                 "guess": named_by_user(value, before),
-                "context": context_of(before),
+                "context": context_of(
+                    before, [v for k, v, _, _ in timeline[:index] if k == "user"]),
                 "outcome": outcome_for(value, where, epoch, window_hours, after,
                                        edited),
                 "user_text": snippet(before),
@@ -488,7 +500,7 @@ def scan_opencode(rows, sessions, stores, window_hours, session_info):
             "time": created,
             "skill": skill,
             "guess": named_by_user(skill, user_text),
-            "context": context_of(user_text),
+            "context": context_of(user_text, before),
             "outcome": outcome_for(skill, directories.get(sid), epoch,
                                    window_hours, next_user,
                                    sid in edited_sessions),
@@ -541,9 +553,13 @@ def main():
                   guesses["alias"], guesses["named"], guesses["slash"],
                   guesses["no-user-text"]))
 
-    print("\nWHAT OCCASIONED IT?   (library-invoked = the human pointed at the "
-          "workbench; batch = accepting a list already proposed; task = routed "
-          "from ordinary work)")
+    print("\nWHAT OCCASIONED IT?")
+    print("  task is a LOWER bound on autonomous routing; task+primed-session is "
+          "the UPPER bound.")
+    print("  Priming counts for the rest of a session once it appears, so a "
+          "session that merely")
+    print("  mentioned the workbench once taints every later firing in it. The "
+          "truth is between.")
     per_context = defaultdict(Counter)
     for row in rows:
         per_context[row["skill"]][row["context"]] += 1
