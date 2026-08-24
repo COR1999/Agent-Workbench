@@ -56,11 +56,16 @@ versus firings), which is why both are shown.
 
 ## What this does not validate
 
-- **The four-part test itself.** Whether the test correctly separates a lesson
-  from a preference is the skill's core judgement, and nothing here measures it.
-  It would need a fixture set of candidate lessons with known verdicts — the
-  approach `deslop` used, and the obvious next piece of work.
+- **The four-part test itself, as a scored gate.** A fixture corpus now exists at
+  `tests/candidates.md`: 8 real candidates with known verdicts, 3 WRITE and 5
+  REFUSE, each recording *which test it stops at*. The refusals carry the weight —
+  refusing is the behaviour nothing else can measure, since a firing that produces
+  no lesson file is indistinguishable from a failure unless the case was known in
+  advance. Deliberately **not** yet a pass/fail gate: `deslop` set a threshold on
+  22 fixtures, and setting one on 8 would imply more precision than 8 cases carry.
 - **Lesson quality.** The artifact test asks only whether a file appeared. A
   worthless lesson and a good one are identical to it.
-- **The refusal path**, as above — unmeasured, and structurally unmeasurable this
-  way.
+- **The refusal path in the field.** The corpus covers refusal on known cases; it
+  says nothing about whether the two real firings that produced no file were
+  correct refusals or failures. That remains structurally unmeasurable from
+  outputs alone.
