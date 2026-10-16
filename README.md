@@ -65,6 +65,7 @@ environments/      machine-specific facts; install.sh appends the matching one
 lessons/           conditional knowledge — true when applies-to matches
 templates/         lesson.md, project-AGENTS.md
 skills/            nine skills (each SKILL.md + VALIDATION.md)
+adapters/          opt-in, harness-specific; the core never depends on these
 scripts/
   install.sh       machine setup: install skills into the harness skills dirs
   adopt.sh         per-project import (idempotent)
@@ -100,6 +101,7 @@ docs/
 bash tests/skill-invariants.sh
 bash tests/import-migration.sh
 bash tests/install-smoke.sh
+bash tests/agents-invariants.sh
 ```
 
 `skill-invariants` locks each skill's load-bearing rules so they can't be silently

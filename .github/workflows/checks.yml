@@ -32,6 +32,9 @@ jobs:
       - name: skill invariants
         run: bash tests/skill-invariants.sh
 
+      - name: delegation agent invariants
+        run: bash tests/agents-invariants.sh
+
       - name: import contract (adopt/unadopt, incl. legacy marker migration)
         run: bash tests/import-migration.sh
 

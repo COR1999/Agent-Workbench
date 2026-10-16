@@ -9,6 +9,16 @@ exist for communication and rollback, not concurrent use.
 
 ## [Unreleased]
 
+### Added
+- **`adapters/claude-code/`: three delegation agents, opt-in.**
+  `workbench-qa-runner` (haiku), `workbench-reviewer` (sonnet, high effort) and
+  `workbench-patcher` (sonnet, worktree-isolated). Installed only by
+  `install.sh --with-agents`; a default install is unchanged. Claude-only, so it
+  sits outside the portable core. `tests/agents-invariants.sh` locks read-only
+  roles to no write tools, the patcher to its worktree, and the reviewer to its
+  verdict vocabulary; `install-smoke.sh` covers opt-in, idempotence, and refusing
+  to overwrite a user's own file at a `workbench-*` name.
+
 ### Changed
 - **The Environment section is per machine.** It was hard-coded to Windows/Git
   Bash in `AGENTS.md`, so installing on any other OS loaded false rules into every
