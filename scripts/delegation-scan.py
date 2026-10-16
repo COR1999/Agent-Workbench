@@ -241,7 +241,7 @@ TSV_COLUMNS = ["project", "session", "time", "agent", "bucket", "per_call_model"
 TSV_HEADER = "\t".join(TSV_COLUMNS)
 
 
-def resolve_out(text):
+def resolve_out(text, header=TSV_HEADER):
     """Where the TSV may be written. Validated at the boundary, before any read.
 
     The TSV can hold client text, so it must stay inside the working tree (where
@@ -258,9 +258,9 @@ def resolve_out(text):
         raise ValueError("--out is a directory")
     if target.exists():
         with target.open(encoding="utf-8", errors="replace") as handle:
-            if handle.readline().rstrip("\n") != TSV_HEADER:
+            if handle.readline().rstrip("\n") != header:
                 raise ValueError("refusing to overwrite " + str(target)
-                                 + ": it is not a previous delegation-scan TSV")
+                                 + ": it is not a previous scan TSV of this kind")
     return target
 
 

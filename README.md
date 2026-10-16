@@ -72,6 +72,7 @@ scripts/
   unadopt.sh       remove the import from a project
   skill-usage-scan.py  count skill firings across every local agent store
   delegation-scan.py   count delegations to the adapter's agents, and who prompted them
+  spend-scan.py        what share of token spend goes on fork-like steps, and how far to trust it
   build-replay-set.py  turn past sessions into labelled routing examples
   lesson-audit.py      check the ledger against the applies-to matching rule
 docs/
@@ -104,6 +105,7 @@ bash tests/import-migration.sh
 bash tests/install-smoke.sh
 bash tests/agents-invariants.sh
 bash tests/delegation-scan.sh
+bash tests/spend-scan.sh
 ```
 
 `skill-invariants` locks each skill's load-bearing rules so they can't be silently
@@ -135,6 +137,14 @@ its role, or opening a session by pointing at the library must each *remove* a
 delegation from the unprompted count, and a session that began before the install
 must not count at all. It runs on synthetic transcripts in a throwaway `HOME`.
 
+`spend-scan` pins the accounting behind the JEV go/no-go: one API response is one
+step (a response is stored once per content block, so naive summing overcounts about
+2.4x), the final streamed usage is priced and not a partial, an unknown model is
+surfaced and never zeroed, cache writes are never called removable, and nothing
+derived from a command line reaches stdout. It also pins the validity gate
+(`--agreement`): the classifier is a list of shell verbs, so its verdict may not be
+read until an independent labeller agrees with it on a sample it has never seen.
+
 Exit 0 = all held. No build step, no dependencies.
 
 The first four run in CI on **ubuntu, macOS and Windows**. That matrix earned itself on
@@ -142,8 +152,8 @@ its first run: a GNU-only `sed` idiom used to trim trailing blank lines emitted 
 *empty* file under BSD `sed`, so on macOS adopting a project destroyed that
 project's `AGENTS.md` while reporting success. See
 [gnu-sed-idioms-empty-files-on-bsd](lessons/gnu-sed-idioms-empty-files-on-bsd.md).
-`delegation-scan` runs in the ubuntu `guards` job only: it needs Python, which the
-other Python guard already assumes there.
+`delegation-scan` and `spend-scan` run in the ubuntu `guards` job only: they need
+Python, which the other Python guard already assumes there.
 
 ## Working across sessions
 
@@ -203,6 +213,7 @@ context and does not belong here.
 | [eslint-bulk-suppressions-race-with-fix-prs](lessons/eslint-bulk-suppressions-race-with-fix-prs.md) | `node`, `eslint` | A rule MR with a bulk-suppressions file and a fix MR each pass alone and fail merged; the second must run `--prune-suppressions` |
 | [psscriptanalyzer-results-differ-by-edition](lessons/psscriptanalyzer-results-differ-by-edition.md) | `windows` | Analyzer rules check against the host's own cmdlets; a clean lint on PowerShell 5.1 can still fail under pwsh. Lint and test under both editions |
 | [transcript-counters-count-your-own-test-runs](lessons/transcript-counters-count-your-own-test-runs.md) | `multi-agent` | A counter over agent transcripts counts your own test sessions, and a whole-day window counts sessions that began before the install; start at the install time and read the sessions behind the number |
+| [transcript-usage-repeats-per-content-block](lessons/transcript-usage-repeats-per-content-block.md) | `multi-agent` | Transcripts repeat one response's usage across several events (about 2.4x overcount if summed); dedupe on the request id and keep the field-wise max |
 
 Writing a new one: `templates/lesson.md`. It carries the four-part test and the
 closed `applies-to` vocabulary. Apply the test honestly — the ledger is worth

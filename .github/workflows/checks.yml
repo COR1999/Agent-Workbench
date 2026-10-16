@@ -68,3 +68,9 @@ jobs:
       # are gated. Python-dependent, so here and not in the OS matrix.
       - name: delegation scanner
         run: bash tests/delegation-scan.sh
+
+      # The JEV go/no-go number comes from this scanner, and every way it can
+      # silently move that number (double-counting a response, pricing a streaming
+      # partial, zeroing an unknown model) is pinned.
+      - name: spend scanner
+        run: bash tests/spend-scan.sh
