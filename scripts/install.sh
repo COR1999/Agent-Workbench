@@ -12,17 +12,25 @@
 # Opt-in:  --with-agents  also installs the Claude Code delegation agents from
 #          adapters/claude-code/ into ~/.claude/agents. Off by default: they are
 #          Claude-only, and the portable core must not depend on them.
+#          --with-explore-override  installs adapters/claude-code/overrides/Explore.md,
+#          which REPLACES Claude Code's built-in Explore subagent (Haiku, low effort)
+#          for every session on the machine. Separate from --with-agents on purpose.
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SKILLS_SRC="$REPO_DIR/skills"
 AGENTS_SRC="$REPO_DIR/adapters/claude-code/agents"
+OVERRIDES_SRC="$REPO_DIR/adapters/claude-code/overrides"
 
 with_agents=0
+with_explore_override=0
 for arg in "$@"; do
   case "$arg" in
     --with-agents) with_agents=1 ;;
-    *) echo "unknown argument: $arg" >&2; echo "usage: install.sh [--with-agents]" >&2; exit 2 ;;
+    --with-explore-override) with_explore_override=1 ;;
+    *) echo "unknown argument: $arg" >&2
+       echo "usage: install.sh [--with-agents] [--with-explore-override]" >&2
+       exit 2 ;;
   esac
 done
 
@@ -62,26 +70,33 @@ done
 [ "$installed_any" = 1 ] || echo "no harness skills dir found (~/.claude or ~/.agents) — skills not installed"
 
 # --- 1b. delegation agents (opt-in) -------------------------------------------
-# Only files named workbench-*.md are ever touched, and one is replaced only if it
-# carries the managed marker (or is a dangling link). A user's own agent at the
-# same name is left alone and reported, because overwriting it would be silent.
-if [ "$with_agents" = 1 ]; then
-  if [ -d "$HOME/.claude" ]; then
-    mkdir -p "$HOME/.claude/agents"
-    echo "installing agents into $HOME/.claude/agents"
-    for src in "$AGENTS_SRC"/workbench-*.md; do
-      [ -f "$src" ] || continue
-      dst="$HOME/.claude/agents/$(basename "$src")"
-      if [ -e "$dst" ] || [ -L "$dst" ]; then
-        if [ -L "$dst" ] && [ ! -e "$dst" ]; then
-          :
-        elif ! grep -q 'managed by Agent-Workbench' "$dst" 2>/dev/null; then
-          echo "  skip    $dst (not managed by Agent-Workbench; left alone)"
-          continue
-        fi
+# A file is replaced only if it carries the managed marker (or is a dangling
+# link). A user's own agent at the same name is left alone and reported, because
+# overwriting it would be silent. --with-agents only ever touches workbench-*.md;
+# the Explore override is a separate flag because it replaces a built-in.
+install_agent_files() {
+  local src dst
+  mkdir -p "$HOME/.claude/agents"
+  for src in "$@"; do
+    [ -f "$src" ] || continue
+    dst="$HOME/.claude/agents/$(basename "$src")"
+    if [ -e "$dst" ] || [ -L "$dst" ]; then
+      if [ -L "$dst" ] && [ ! -e "$dst" ]; then
+        :
+      elif ! grep -q 'managed by Agent-Workbench' "$dst" 2>/dev/null; then
+        echo "  skip    $dst (not managed by Agent-Workbench; left alone)"
+        continue
       fi
-      link_or_copy "$src" "$dst"
-    done
+    fi
+    link_or_copy "$src" "$dst"
+  done
+}
+
+if [ "$with_agents" = 1 ] || [ "$with_explore_override" = 1 ]; then
+  if [ -d "$HOME/.claude" ]; then
+    echo "installing agents into $HOME/.claude/agents"
+    [ "$with_agents" = 1 ] && install_agent_files "$AGENTS_SRC"/workbench-*.md
+    [ "$with_explore_override" = 1 ] && install_agent_files "$OVERRIDES_SRC"/Explore.md
   else
     echo "skip agents: no ~/.claude"
   fi

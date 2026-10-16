@@ -28,6 +28,35 @@ session delegate without being told which agent to use.
 Models are aliases (`haiku`, `sonnet`), which track the newest version of the
 family. Pin a full model ID in the file if you need a run to be reproducible.
 
+## The Explore override
+
+```
+bash scripts/install.sh --with-explore-override
+```
+
+Claude Code's built-in `Explore` subagent runs on the main session's model, so
+every delegated search is billed at that model's price. A user or project agent
+named `Explore` replaces it, and `overrides/Explore.md` is that replacement:
+Haiku, low effort, `Read, Grep, Glob` only.
+
+It is a separate flag from `--with-agents` because it replaces a built-in for
+**every** session on the machine, not just adds a helper. A user's own
+`Explore.md` is never overwritten.
+
+What it costs you:
+
+- **Fewer tools than the built-in.** The built-in can also run shell commands, so
+  a search that wants `git log` or `find` is no longer possible. Add `Bash` to the
+  file if you want that back.
+- **Search quality is unmeasured.** A cheaper model at low effort may miss matches
+  a stronger one would find. The trial in `docs/ROADMAP.md` covers delegation, not
+  this. Watch for "not found" answers that turn out to be wrong.
+
+Not installed, deliberately: `CLAUDE_CODE_SUBAGENT_MODEL=haiku`. Per the docs it
+does not change Explore or Plan on its own, and with `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1`
+it would also move subagents that pin their own model, including these agents. It
+would also move the general-purpose subagent, which does the harder research.
+
 ## What this does not do
 
 - **Agent teams are not used.** They are experimental, need an interactive
@@ -52,6 +81,11 @@ Written 2026-10-16 from the Claude Code documentation, not from use:
   counts it.
 - That the patcher's worktree result is handed back the way the description
   assumes.
+- That the override works as intended. Tested on Claude Code 2.1.296, Linux, with
+  the file in a project's `.claude/agents/` and a Sonnet main session: the
+  subagent's messages in the session transcript were all `claude-haiku-5-5`, and a
+  control run without the file used `claude-sonnet-5-5`. One query each, a tiny
+  directory, so this shows precedence, not search quality.
 - That the agents load under every host. Tested: file shape and install
   behaviour (`tests/agents-invariants.sh`, `tests/install-smoke.sh`), and one
   headless Claude Code 2.1.296 run on Linux with the files in a project's

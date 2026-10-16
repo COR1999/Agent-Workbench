@@ -10,6 +10,12 @@ exist for communication and rollback, not concurrent use.
 ## [Unreleased]
 
 ### Added
+- **`install.sh --with-explore-override`: Explore on Haiku, opt-in.** The built-in
+  Explore subagent runs on the main model, so delegated searches are billed at its
+  price. `adapters/claude-code/overrides/Explore.md` replaces it (Haiku, low
+  effort, read-only tools). A separate flag from `--with-agents` because it
+  replaces a built-in machine-wide. Confirmed by transcript: Haiku with the file,
+  the main model without it. Search quality is not measured.
 - **`adapters/claude-code/`: three delegation agents, opt-in.**
   `workbench-qa-runner` (haiku), `workbench-reviewer` (sonnet, high effort) and
   `workbench-patcher` (sonnet, worktree-isolated). Installed only by
