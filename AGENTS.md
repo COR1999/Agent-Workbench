@@ -2,20 +2,9 @@
 
 Hard rules only. Always true, no conditions, no procedure. Anything that needs an
 "if" is a lesson (`lessons/`), not a rule. Anything true in only one repo belongs
-in that repo's own `AGENTS.md`.
-
-## Environment
-
-This machine is Windows 11 with Git Bash.
-
-- **Git Bash rewrites POSIX-looking arguments into Windows paths** before handing
-  them to native executables. `--title '/admin/customers is slow'` arrives as
-  `C:/Program Files/Git/admin/customers is slow`. This has already corrupted a
-  real GitHub issue title. Prefix with `MSYS_NO_PATHCONV=1`, or use PowerShell,
-  for any command whose arguments contain a leading slash.
-- **There is no Docker on this machine.** Anything requiring a container, a local
-  Postgres, or `supabase start` runs in CI only. Never report such a step as
-  verified locally.
+in that repo's own `AGENTS.md`. Facts about one machine (OS, shell quirks,
+what is installed) live in `environments/`, not here, and `install.sh` appends the
+matching one.
 
 ## Verification
 
@@ -61,14 +50,15 @@ This machine is Windows 11 with Git Bash.
   way it is.
 - **Every commit, PR, and issue a model authors must name the model that wrote
   it — provider, model, and version — so contributions can be traced to a
-  specific model and compared for reliability over time.** Add a `Model:` trailer
-  to commit messages (last line, after the work-record body), and a matching
-  `Model:` line at the foot of every PR and issue body. Format:
-  `Model: <Provider> <Model> (<model-id>)`, e.g.
-  `Model: Anthropic Claude Opus 4.8 (claude-opus-4-8)`. Name the actual model
-  doing the work, never a placeholder or a default; a human-authored change
-  carries no such line. This is provenance, not attribution theatre — it exists
-  so the human can weight trust by which model produced the work.
+  specific model and compared for reliability over time.** Add a
+  `Co-Authored-By:` trailer to commit messages (last line, after the work-record
+  body and any other trailers such as `Changelog:`), and a matching
+  `Co-Authored-By:` line at the foot of every PR and issue body. Format:
+  `Co-Authored-By: <Model name and version> <noreply@<provider-domain>>`, e.g.
+  `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`. Name the actual
+  model doing the work, never a placeholder or a default; a human-authored
+  change carries no such line. This is provenance, not attribution theatre — it
+  exists so the human can weight trust by which model produced the work.
 
 ## Lessons
 

@@ -63,6 +63,19 @@ check "stale rules content gone"     0 "$(count 'STALE-RULES' "$LEGACY_HOME/.cla
 check "own notes above survive"      1 "$(count 'MY-OWN-NOTES-ABOVE' "$LEGACY_HOME/.claude/CLAUDE.md")"
 check "own notes below survive"      1 "$(count 'MY-OWN-NOTES-BELOW' "$LEGACY_HOME/.claude/CLAUDE.md")"
 
+echo "install.sh — the Environment section is chosen per machine:"
+ENV_HOME="$TMP/env-home"; mkdir -p "$ENV_HOME/.claude"
+HOME="$ENV_HOME" WORKBENCH_ENV=windows-git-bash bash "$REPO/scripts/install.sh" >/dev/null 2>&1
+check "windows env: Git Bash rule present"   1 "$(count 'Git Bash rewrites' "$ENV_HOME/.claude/CLAUDE.md")"
+check "windows env: exactly one Environment" 1 "$(count '^## Environment' "$ENV_HOME/.claude/CLAUDE.md")"
+HOME="$ENV_HOME" WORKBENCH_ENV=linux bash "$REPO/scripts/install.sh" >/dev/null 2>&1
+check "switching to linux drops the Git Bash rule" 0 "$(count 'Git Bash rewrites' "$ENV_HOME/.claude/CLAUDE.md")"
+check "linux env: exactly one Environment"   1 "$(count '^## Environment' "$ENV_HOME/.claude/CLAUDE.md")"
+HOME="$ENV_HOME" WORKBENCH_ENV=no-such-machine bash "$REPO/scripts/install.sh" >/dev/null 2>&1
+check "unknown env: no Environment section"  0 "$(count '^## Environment' "$ENV_HOME/.claude/CLAUDE.md")"
+check "unknown env: rules still installed"   1 "$(count 'workbench-rules:start' "$ENV_HOME/.claude/CLAUDE.md")"
+check "AGENTS.md itself carries no Environment section" 0 "$(count '^## Environment' "$REPO/AGENTS.md")"
+
 echo "install.sh — a HOME with no harness directory:"
 BARE_HOME="$TMP/bare-home"; mkdir -p "$BARE_HOME"
 HOME="$BARE_HOME" bash "$REPO/scripts/install.sh" >/dev/null 2>&1
