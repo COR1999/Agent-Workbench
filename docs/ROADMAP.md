@@ -541,8 +541,52 @@ made from this repository**:
    - *Not yet done:* measurements 2 and 3 below; re-running after more real sessions
      have accumulated and the author's test sessions fall out of the window; labelling
      by a human rather than a model.
-2. **Official docs.** Read TypeSafe's own documentation for the API, pricing and
-   whether it can run locally. Until then, nothing above is more than secondhand.
+2. **Official docs. Done 2026-10-16** (`docs.typesafe.ai`; no API call made).
+   What the vendor's own pages say, replacing the secondhand claims above:
+
+   - *Shape.* Hosted only: `POST https://api.typesafe.ai/v1/systemone` with a bearer
+     key. A request is a `state` plus typed `questions` (Choice, Score, Noul); the
+     response is an answer per question plus token usage. Official Python and
+     JavaScript SDKs. **No self-hosted or local option is documented.** How to obtain
+     a key, and whether there is a free tier, are not on the pages read.
+   - *Price.* $42 per billion input tokens ($0.042 per million); "output tokens are
+     free", which confirms that claim. `jev-1.13` is the stable default (`jev-latest`);
+     `jev-1.14` is a preview available from 2026-10-14. No latency figure is on the
+     models page; rate limits are per organisation, set in the console.
+   - *Context.* 64k tokens per request, 262k behind a long-context header the docs
+     call "slower and less accurate". So a router sees a summary, not a whole session.
+   - *Data.* The privacy policy states a commitment not to train on user data. Zero
+     data retention is offered to enterprise customers only; retention terms for other
+     plans are in a data-processing agreement not read. **Treat anything sent as
+     retained.**
+   - *Claude Code.* TypeSafe ships no plugin, MCP server or hook, and says Jev is not
+     a drop-in replacement for the model behind a coding agent. It points to an
+     "agent skill" page (not read). The `jev-layer` MCP package found earlier is
+     third-party.
+   - *Stated weaknesses* (the `jev-1.13` jaggedness page, which gives no failure
+     rates): it answers the question as written, not as meant; it leans toward the
+     first-listed choice; a large state full of irrelevant detail hurts; **text
+     written to steer the answer can move it**; counting, numeric closeness and dates
+     are unreliable and belong in code.
+   - *The vendor's skill-routing evidence* (the "skill suggestion" cookbook). Task:
+     pick at most one skill from a 182-skill catalogue per agent turn, in two
+     requests (rank all with a Choice and three gate Nouls; re-read the top three
+     with a Noul each), then add one line to the system prompt. 488 requests, 315
+     covered by a skill and 173 by none; agent `claude-haiku-4-5`. Wrong loads fell
+     from 16.8% to 7.3% (an oracle gets 2.5%) and needless loads from 9.8% to 4.0%;
+     it "fixed" 37 requests and "broke" 7. The authors' own caveats: the covered
+     requests are easier than real ones, one agent model, thresholds set by the
+     authors, and "a confident wrong suggestion is more persuasive than no
+     suggestion at all".
+
+   What this changes. **Price is not the obstacle**; the input price is negligible, so
+   the open questions are accuracy and escalation, as before. **The cookbook's
+   mechanism addresses reachability, which an MCP tool does not:** the suggestion is
+   injected by the host *before* the model decides, so it does not depend on the model
+   choosing to ask. But the cookbook measures wrong and needless loads when the agent
+   does decide; this library's measured problem is skills never being reached (about
+   nine in ten missed). A different metric, so the vendor's result does not transfer
+   and has to be re-measured here.
 3. **Skill-routing replay.** Feed `build-replay-set.py`'s labelled situations to a
    JEV router with the nine skills plus "none" as the options, and compare against
    the current description routing and a plain-LLM baseline, **including sampled
@@ -550,16 +594,32 @@ made from this repository**:
    without negatives any router that always fires looks perfect). Metric fixed as
    in guard 3 above: of applicable-and-missed holdout examples, how many it routes
    correctly, with the false-fire rate reported beside it. Guard 5 applies: the
-   judge is the objective label, not a model.
+   judge is the objective label, not a model. Protocol borrowed from the vendor's
+   cookbook: a Choice over the roster plus "none", then a Noul per top candidate. The
+   roster here is ten options, not 182, which is the easy end of what the vendor tests.
+   Re-run with the options in a different order, since the model leans to the first.
 
-**Constraints on the replay.** Only the genericized fixtures may be sent to a
-third-party API. Real session transcripts come from private work and **must not**
-leave the machine. Creating a provider key is the human's decision.
+**Constraints on the replay.** Only text that is already public may be sent to a
+third-party API: the skill descriptions and the anonymised fixtures under
+`skills/*/tests/` are in this public repository, so sending them discloses nothing
+new. Real session transcripts come from private work and **must not** leave the
+machine, and with retention unspecified outside enterprise plans, "must not" is not
+softened by the training commitment. The adversarial-content weakness above matters
+too: a user prompt is untrusted text that can steer the router. Creating an account and
+key is the human's decision; the docs read do not say how, and nothing has been
+created.
 
-**Where it would live if it passes:** behind MCP (`jev mcp`), so it stays portable
-across harnesses — and it still has to be *called*, which is the same reachability
-problem. Passing the replay shows the decision is learnable; it does not show the
-model will ask.
+**Where it would live if it passes.** Two routes, with different honesty:
+
+- *MCP* (the third-party `jev mcp`): portable across harnesses, but the model must
+  still choose to call it, which is the reachability problem again. Passing the replay
+  would show the decision is learnable, not that the model will ask.
+- *A pre-turn hook, as in the vendor's cookbook:* the host asks Jev about each user
+  prompt and injects the suggestion before the model decides. This is the only route
+  that does not depend on the model asking. It is Claude-only, so it would sit in
+  `adapters/claude-code/`, and it sends every prompt to the vendor, so it is the
+  privacy decision above made permanent. It should not be built until the replay on
+  public fixtures says it is worth it.
 
 ## Audience
 
