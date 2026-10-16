@@ -19,11 +19,12 @@ trap 'rm -rf "$TMP"' EXIT
 fails=0
 ok()   { echo "  ok    $1"; }
 fail() { echo "  FAIL  $1"; fails=$((fails + 1)); }
-check() { if [ "$2" = "$3" ]; then ok "$1"; else fail "$1 (expected '$2', got '$3')"; fi; }
+check() { if [[ "$2" = "$3" ]]; then ok "$1"; else fail "$1 (expected '$2', got '$3')"; fi; }
 
 H="$TMP/home"
 P="$H/.claude/projects/-proj"
-mkdir -p "$P"
+mkdir -p "$P" "$TMP/work"
+cd "$TMP" || exit 1
 
 # user <file> <ts> <text>
 user()  { printf '{"type":"user","timestamp":"%s","cwd":"/x/y","message":{"role":"user","content":[{"type":"text","text":"%s"}]}}\n' "$2" "$3" >> "$1"; }
@@ -72,7 +73,7 @@ check "the pre-window delegation is absent from the TSV" 0 "$(grep -c '2026-09-0
 
 echo "delegation-scan — privacy:"
 check "stdout carries no prompt text"        0 "$(printf '%s\n' "$out" | grep -c 'SECRET-CLIENT-PHRASE')"
-check "the TSV does (it is gitignored)"      1 "$([ "$(grep -c 'SECRET-CLIENT-PHRASE' "$TMP/out.tsv")" -ge 1 ] && echo 1 || echo 0)"
+check "the TSV does (it is gitignored)"      1 "$([[ "$(grep -c 'SECRET-CLIENT-PHRASE' "$TMP/out.tsv")" -ge 1 ]] && echo 1 || echo 0)"
 
 echo "delegation-scan — the roadmap's decision rule:"
 check "one unprompted already: zero-by-target can no longer hold, so not triggered" 1 \
@@ -97,7 +98,29 @@ out6="$(HOME="$H4" "$PY" -I "$REPO/scripts/delegation-scan.py" --since 2026-10-2
 check "a bare date still means midnight UTC"                              "sessions=2" \
   "$(printf '%s\n' "$out6" | grep '^totals:' | grep -o 'sessions=[0-9]*')"
 HOME="$H4" "$PY" -I "$REPO/scripts/delegation-scan.py" --since nonsense --out "$TMP/o7.tsv" >/dev/null 2>&1
-check "a malformed --since exits non-zero rather than counting everything" 1 "$([ $? -ne 0 ] && echo 1 || echo 0)"
+rc=$?
+check "a malformed --since exits non-zero rather than counting everything" 1 "$([[ $rc -ne 0 ]] && echo 1 || echo 0)"
+
+echo "delegation-scan — --out is confined, because the TSV can hold client text:"
+scan_out() { ( cd "$TMP/work" && HOME="$H" "$PY" -I "$REPO/scripts/delegation-scan.py" --since 2026-10-01 "$@" >/dev/null 2>&1 ); }
+scan_out --out ../escape.tsv;                rc=$?
+check "a relative path escaping the working directory is refused" 1 "$([[ $rc -ne 0 && ! -e "$TMP/escape.tsv" ]] && echo 1 || echo 0)"
+scan_out --out "$TMP/outside.tsv";           rc=$?
+check "an absolute path outside the working directory is refused" 1 "$([[ $rc -ne 0 && ! -e "$TMP/outside.tsv" ]] && echo 1 || echo 0)"
+scan_out --out sub/dir/inside.tsv;           rc=$?
+check "a nested relative path inside it is written"                1 "$([[ $rc -eq 0 && -s "$TMP/work/sub/dir/inside.tsv" ]] && echo 1 || echo 0)"
+scan_out --out sub/dir/inside.tsv;           rc=$?
+check "re-running over its own earlier output is allowed"          0 "$rc"
+printf 'precious\n' > "$TMP/work/notes.txt"
+scan_out --out notes.txt;                    rc=$?
+check "a file that is not a previous scan TSV is never overwritten" 1 \
+  "$([[ $rc -ne 0 && "$(cat "$TMP/work/notes.txt")" = "precious" ]] && echo 1 || echo 0)"
+ln -s "$TMP/elsewhere" "$TMP/work/link" 2>/dev/null && mkdir -p "$TMP/elsewhere"
+if [[ -L "$TMP/work/link" ]]; then
+  scan_out --out link/x.tsv;                 rc=$?
+  check "a symlink pointing outside the working directory is refused" 1 \
+    "$([[ $rc -ne 0 && ! -e "$TMP/elsewhere/x.tsv" ]] && echo 1 || echo 0)"
+fi
 
 echo "delegation-scan — a missing store is reported, not a crash:"
 H3="$TMP/home3"; mkdir -p "$H3"
@@ -107,5 +130,5 @@ check "says the store is missing"            1 "$(printf '%s\n' "$out4" | grep -
 check "says no install was detected"         1 "$(printf '%s\n' "$out4" | grep -c 'not detected')"
 
 echo
-if [ "$fails" -eq 0 ]; then echo "delegation-scan holds."; else echo "$fails check(s) failed."; fi
+if [[ "$fails" -eq 0 ]]; then echo "delegation-scan holds."; else echo "$fails check(s) failed."; fi
 exit "$fails"

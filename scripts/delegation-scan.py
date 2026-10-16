@@ -163,6 +163,34 @@ def parse_since(text):
     return value if value.tzinfo else value.replace(tzinfo=dt.timezone.utc)
 
 
+TSV_COLUMNS = ["project", "session", "time", "agent", "bucket", "per_call_model",
+               "user_text", "description", "prompt", "warranted"]
+TSV_HEADER = "\t".join(TSV_COLUMNS)
+
+
+def resolve_out(text):
+    """Where the TSV may be written. Validated at the boundary, before any read.
+
+    The TSV can hold client text, so it must stay inside the working tree (where
+    .usage/ is gitignored) rather than land wherever an argument points. And an
+    existing file is overwritten only if it is a previous scan's TSV: without that,
+    `--out ~/.bashrc` is a clobber. Symlinks are resolved first, so a link that
+    leads out of the working directory is refused too.
+    """
+    cwd = pathlib.Path.cwd().resolve()
+    target = (cwd / text).resolve()
+    if cwd not in target.parents:
+        raise ValueError("--out must be a file inside the current directory (" + str(cwd) + ")")
+    if target.is_dir():
+        raise ValueError("--out is a directory")
+    if target.exists():
+        with target.open(encoding="utf-8", errors="replace") as handle:
+            if handle.readline().rstrip("\n") != TSV_HEADER:
+                raise ValueError("refusing to overwrite " + str(target)
+                                 + ": it is not a previous delegation-scan TSV")
+    return target
+
+
 def detect_install(agents_dir):
     """Newest mtime among the installed adapter files, as a UTC datetime, or None."""
     newest = None
@@ -188,6 +216,11 @@ def main():
     parser.add_argument("--out", default=".usage/delegation.tsv",
                         help="TSV of every delegation. Gitignored; may contain client text.")
     args = parser.parse_args()
+    try:
+        out = resolve_out(args.out)
+    except (ValueError, OSError) as exc:
+        print("error: " + str(exc), file=sys.stderr)
+        return 2
 
     projects = HOME / ".claude" / "projects"
     agents_dir = HOME / ".claude" / "agents"
@@ -277,15 +310,12 @@ def main():
     else:
         print("rule: not yet. %d of %d sessions, zero unprompted so far." % (sessions, args.target))
 
-    out = pathlib.Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
-    columns = ["project", "session", "time", "agent", "bucket", "per_call_model",
-               "user_text", "description", "prompt", "warranted"]
     with out.open("w", encoding="utf-8") as handle:
-        handle.write("\t".join(columns) + "\n")
+        handle.write(TSV_HEADER + "\n")
         for row in rows:
             handle.write("\t".join(cell.replace("\t", " ") for cell in row) + "\n")
-    print("TSV: %s (%d rows; gitignored; may contain client text)" % (out, len(rows)))
+    print("TSV: %s (%d rows; may contain client text; keep it gitignored)" % (out, len(rows)))
     return 0
 
 
