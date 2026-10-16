@@ -121,9 +121,15 @@ modifying the real machine. It runs against a throwaway `HOME` instead, and lock
 that a legacy rules block is migrated rather than appended alongside: two copies
 of the machine rules would load into every session, and nothing would report it.
 
+`agents-invariants` locks the opt-in delegation agents in `adapters/claude-code/`.
+They are config, so nothing fails when a field is edited out: a reviewer that
+gains `Edit` still loads. The test fails instead — read-only roles hold no write
+tools, the patcher keeps its worktree isolation, the expensive agent keeps its
+"when not to use me".
+
 Exit 0 = all held. No build step, no dependencies.
 
-All three run in CI on **ubuntu, macOS and Windows**. That matrix earned itself on
+All four run in CI on **ubuntu, macOS and Windows**. That matrix earned itself on
 its first run: a GNU-only `sed` idiom used to trim trailing blank lines emitted an
 *empty* file under BSD `sed`, so on macOS adopting a project destroyed that
 project's `AGENTS.md` while reporting success. See

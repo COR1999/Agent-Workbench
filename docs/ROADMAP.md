@@ -404,8 +404,9 @@ with a mid-tier model as the main session and wants noisy verification, review a
 independent multi-file edits handed to other models. That is a build trigger, so
 #42 is reopened, **narrowly**:
 
-- `adapters/claude-code/` holds three opt-in agents (`workbench-qa-runner`,
-  `workbench-reviewer`, `workbench-patcher`). Installed only by
+- `adapters/claude-code/` holds four opt-in agents (`workbench-qa-runner`,
+  `workbench-reviewer`, `workbench-patcher`, and `workbench-architect`, the Opus
+  one for decisions that need more reasoning). Installed only by
   `install.sh --with-agents`. A default install is unchanged.
 - It is **outside the portable core**, because this document forbids a
   Claude-only mechanism there. Nothing in `skills/`, `lessons/` or `AGENTS.md`
@@ -425,6 +426,10 @@ agent descriptions do better, so the adapter is a **trial, not a feature**.
 **Claim under test.** The main session delegates to a `workbench-*` agent, unasked,
 in situations where one applies. Judged on the same footing as the skills: count
 **task-routed** delegations only, not ones where the human named the agent.
+For the architect the question is sharper, because it is the costly one: count
+task-routed uses **and** uses on work that did not need it (a routine edit, a
+search), which are a cost, not a win. The kept-and-warranted rate is the score,
+for the same reason as the metric hazard above.
 **Decision rule, fixed now:** if there are zero task-routed delegations by 35
 sessions with the adapter installed, cut the adapter or replace the description
 routing with an explicit rule. Counting uses the session stores

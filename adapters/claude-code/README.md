@@ -7,7 +7,7 @@ core:** nothing in `skills/`, `lessons/` or `AGENTS.md` depends on anything here
 bash scripts/install.sh --with-agents
 ```
 
-A plain `install.sh` installs none of this. With the flag, three files are placed
+A plain `install.sh` installs none of this. With the flag, four files are placed
 in `~/.claude/agents/`. Only `workbench-*.md` names are touched, and a file at one
 of those names that does not carry the managed marker is left alone and reported.
 
@@ -15,12 +15,20 @@ of those names that does not carry the managed marker is left alone and reported
 
 | Agent | Model | Tools | Use it for |
 |---|---|---|---|
+| `workbench-architect` | opus, effort high | Read, Grep, Glob, Bash | Deciding before building: ambiguous or cross-cutting design, a root cause still unknown after one failed attempt, anything irreversible or security-sensitive. Returns options, a recommendation, risks, and what would change the answer. The expensive agent; not for routine work. |
 | `workbench-qa-runner` | haiku | Read, Grep, Glob, Bash | Running checks whose output is long. Focused checks first, full suite last. Returns commands, exit codes and the first failure. |
 | `workbench-reviewer` | sonnet, effort high | Read, Grep, Glob, Bash | A second look before declaring done or merging. Returns a table of claim, verdict (`verified` / `incorrect` / `unresolved`), evidence, correction. |
 | `workbench-patcher` | sonnet | Read, Grep, Glob, Edit, Write, Bash | Independent multi-file edits in parallel, each patch owning distinct files. Runs in a git worktree, never commits. |
 
 Files are installed as links where the OS allows it and as copies otherwise. A
 copy does not follow `git pull`: re-run `install.sh --with-agents` after pulling.
+
+**Escalating a review to Opus.** `workbench-reviewer` is pinned to Sonnet. For a
+risky change the main session can pass `model: opus` on that one call, which the
+Claude Code docs say takes precedence over the file. No second reviewer file is
+needed. Opus 5.5 lists at about twice Sonnet 5.5 per token (checked 2026-10-16 on
+the Anthropic pricing page), so the escalation is cheap next to a wrong design;
+the expensive thing to avoid is Opus on routine work.
 
 Routing is the `description:` field of each file. That is what lets the main
 session delegate without being told which agent to use.
@@ -89,5 +97,5 @@ Written 2026-10-16 from the Claude Code documentation, not from use:
 - That the agents load under every host. Tested: file shape and install
   behaviour (`tests/agents-invariants.sh`, `tests/install-smoke.sh`), and one
   headless Claude Code 2.1.296 run on Linux with the files in a project's
-  `.claude/agents/`, which listed all three and logged no unrecognised-field
+  `.claude/agents/`, which listed the first three and logged no unrecognised-field
   warning. Not tested: any other host, including an SDK-driven session.

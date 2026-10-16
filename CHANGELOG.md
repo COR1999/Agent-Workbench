@@ -10,6 +10,11 @@ exist for communication and rollback, not concurrent use.
 ## [Unreleased]
 
 ### Added
+- **`workbench-architect`: an Opus agent for decisions that need more reasoning.**
+  Read-only, high effort, returns options, a recommendation, risks and what would
+  change the answer. Its description says when *not* to use it, and the invariants
+  test fails if that is edited out. For a risky review, the main session can pass
+  `model: opus` on a `workbench-reviewer` call instead of needing a second file.
 - **`install.sh --with-explore-override`: Explore on Haiku, opt-in.** The built-in
   Explore subagent runs on the main model, so delegated searches are billed at its
   price. `adapters/claude-code/overrides/Explore.md` replaces it (Haiku, low

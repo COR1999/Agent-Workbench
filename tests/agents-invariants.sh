@@ -41,7 +41,7 @@ for f in $agents; do
 done
 
 echo "read-only roles hold no write tools:"
-for r in workbench-qa-runner workbench-reviewer; do
+for r in workbench-qa-runner workbench-reviewer workbench-architect; do
   f="$DIR/$r.md"
   if [ -f "$f" ] && ! field "$f" tools | grep -qE 'Edit|Write|NotebookEdit'; then ok "$r has no Edit/Write/NotebookEdit"; else fail "$r must exist and hold no Edit/Write/NotebookEdit"; fi
 done
@@ -59,6 +59,16 @@ check "$f" effort '^(high|xhigh|max)$' "reviews at high effort or above"
 body  "$f" 'verified'                  "verdict vocabulary: verified"
 body  "$f" 'incorrect'                 "verdict vocabulary: incorrect"
 body  "$f" 'unresolved'                "verdict vocabulary: unresolved"
+
+echo "workbench-architect:"
+f="$DIR/workbench-architect.md"
+check "$f" model '^opus$'                       "runs on the strongest model: that is the point of it"
+check "$f" effort '^(high|xhigh|max)$'          "reasons at high effort or above"
+check "$f" description '[Dd]o not use|not for'  "description says when NOT to use it (it is the expensive one)"
+body  "$f" 'recommend'                          "returns a recommendation, not just options"
+body  "$f" 'risk'                               "names risks"
+body  "$f" 'would change'                       "says what would change its answer"
+body  "$f" 'never (edit|write|change)|do not (modify|edit|write)' "does not change the tree"
 
 echo "workbench-qa-runner:"
 f="$DIR/workbench-qa-runner.md"
