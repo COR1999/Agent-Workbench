@@ -62,41 +62,81 @@ _spec.loader.exec_module(scan)
 HOME = pathlib.Path.home()
 
 ADAPTER_PREFIX = "workbench-"
-ADAPTER_EXTRA = {"Explore"}   # the override; counted only if the override is what ran
 DELEGATION_TOOLS = {"Agent", "Task"}   # "Task" is the older name for the same tool
 BUCKETS = ["task", "named", "role-mentioned", "primed", "batch", "no-user-text"]
 
+# What a human might say instead of the agent's full name. Stems and inflections
+# are listed because a strict whole-word match on "reviewer" missed "reviewers" and
+# "review my changes", and each miss scored a human-caused delegation as unprompted.
+# This errs toward "not unprompted": the cost of that error is a trial that cuts the
+# adapter too late, which is cheaper than one that cuts it on a miscount.
+ROLE_WORDS = {
+    "workbench-qa-runner": ["qa", "qa runner", "qa-runner", "test runner"],
+    "workbench-reviewer": ["reviewer", "reviewers", "review", "reviews", "reviewing"],
+    "workbench-architect": ["architect", "architects", "architecture", "architectural"],
+    "workbench-patcher": ["patcher", "patch", "patches", "patching"],
+    "Explore": ["explore", "explores", "exploring"],
+}
+
+
+def known_agents():
+    """The adapter's own agent names, read from the repo so they cannot drift.
+
+    Transcripts are untrusted input: a subagent_type is whatever string a model or
+    a tool supplied. Only names found here are ever printed as adapter agents.
+    """
+    names = set()
+    for sub in ("agents", "overrides"):
+        folder = HERE.parent / "adapters" / "claude-code" / sub
+        names.update(path.stem for path in folder.glob("*.md"))
+    return names or set(ROLE_WORDS)
+
+
+KNOWN_AGENTS = known_agents()
+
 
 def is_adapter_agent(name):
-    return name.startswith(ADAPTER_PREFIX) or name in ADAPTER_EXTRA
+    return name in KNOWN_AGENTS
+
+
+def safe_label(name):
+    """A transcript-supplied name, made safe to print."""
+    return name if re.fullmatch(r"[A-Za-z0-9_.-]{1,40}", name) else "(unprintable name)"
 
 
 def role_words(agent):
     """Words a human might use for the role without typing the agent's full name."""
-    if agent == "Explore":
-        return ["explore"]
-    role = agent[len(ADAPTER_PREFIX):]
-    words = {role, role.replace("-", " "), role.replace("-", "")}
-    return sorted(words)
+    if agent in ROLE_WORDS:
+        return ROLE_WORDS[agent]
+    role = agent[len(ADAPTER_PREFIX):] if agent.startswith(ADAPTER_PREFIX) else agent
+    return sorted({role, role.replace("-", " "), role.replace("-", "")})
 
 
 def has_word(text, word):
     return re.search(r"(?<![a-z0-9])" + re.escape(word) + r"(?![a-z0-9])", text) is not None
 
 
-def classify(agent, before, earlier):
+def classify(agent, before, before_kind, humans, primers):
     """Who occasioned the delegation. A category for reading, not a verdict.
 
-    Precedence matters: the human NAMING the agent is the strongest reason it ran,
-    so it wins over every other bucket. The role word comes next, and is checked
-    only against the message immediately before the delegation.
+    Precedence matters: a human invoking or naming the agent is the strongest reason
+    it ran, so those win over every other bucket.
+      - the human ran a slash command just before        -> named
+      - the human typed the agent's name ANYWHERE earlier -> named (not only in the
+        last message: "use X when done ... ok go" is the common pattern)
+      - the human typed its role in the message just before -> role-mentioned
+      - the library was mentioned earlier, or in a continuation summary -> primed
     """
+    if before_kind == "slash":
+        return "named"
     low = (before or "").lower()
-    if low and agent.lower() in low:
+    if any(agent.lower() in (text or "").lower() for text in humans):
         return "named"
     if low and any(has_word(low, w) for w in role_words(agent)):
         return "role-mentioned"
-    context = scan.context_of(before, earlier)
+    if any(ref in (text or "").lower() for text in primers for ref in scan.LIBRARY_REFS):
+        return "primed"
+    context = scan.context_of(before, humans[:-1])
     if context in ("primed-session", "library-invoked"):
         return "primed"
     if context == "batch":
@@ -106,19 +146,41 @@ def classify(agent, before, earlier):
     return "task"
 
 
-def human_text(content):
-    """The text of a user event, whether content is a string or a list of blocks."""
+def human_entries(content):
+    """Human-authored text in a message, as [(kind, text)].
+
+    kind is "text" for ordinary messages, "slash" for a slash-command invocation, and
+    "prime" for a continuation summary that mentions the library. The test is applied
+    per block: joining blocks first let a harness-injected reminder in the same
+    message discard the human's own words.
+    """
     if isinstance(content, str):
-        return content
-    if isinstance(content, list):
-        return " ".join(b.get("text", "") for b in content
-                        if isinstance(b, dict) and b.get("type") == "text")
-    return ""
+        blocks = [content]
+    elif isinstance(content, list):
+        blocks = [b.get("text", "") for b in content
+                  if isinstance(b, dict) and b.get("type") == "text"]
+    else:
+        return []
+    entries, texts = [], []
+    for block in blocks:
+        low = block.strip().lower()
+        if not low:
+            continue
+        if "<command-name>" in low:
+            entries.append(("slash", block))
+        elif low.startswith("this session is being continued"):
+            if any(ref in low for ref in scan.LIBRARY_REFS):
+                entries.append(("prime", block))
+        elif scan.is_human(block):
+            texts.append(block)
+    if texts:
+        entries.append(("text", " ".join(texts)))
+    return entries
 
 
 def read_session(path):
-    """One transcript -> (start epoch, timeline). Timeline entries are
-    ("user", text) and ("delegate", agent, stamp, input_dict)."""
+    """One transcript -> (start epoch, timeline, cwd). Timeline entries are
+    ("user", text, kind) and ("delegate", agent, stamp, input_dict)."""
     timeline, start, cwd = [], None, ""
     try:
         handle = path.open(encoding="utf-8", errors="replace")
@@ -133,17 +195,27 @@ def read_session(path):
                 event = json.loads(line)
             except json.JSONDecodeError:
                 continue
+            if not isinstance(event, dict):
+                continue
             stamp = event.get("timestamp", "")
             epoch = scan.iso_to_epoch(stamp)
             if epoch:
                 start = epoch if start is None else min(start, epoch)
             cwd = event.get("cwd") or cwd
+            kind = event.get("type")
+            if kind == "attachment":
+                # A message the human typed while the model was mid-turn is stored
+                # as a queued_command attachment, not as a user event.
+                attachment = event.get("attachment") or {}
+                if attachment.get("type") == "queued_command":
+                    for entry_kind, text in human_entries(attachment.get("prompt")):
+                        timeline.append(("user", text, entry_kind))
+                continue
             message = event.get("message") or {}
             content = message.get("content")
-            if event.get("type") == "user":
-                text = human_text(content)
-                if text.strip() and scan.is_human(text):
-                    timeline.append(("user", text))
+            if kind == "user":
+                for entry_kind, text in human_entries(content):
+                    timeline.append(("user", text, entry_kind))
                 continue
             if not isinstance(content, list):
                 continue
@@ -151,8 +223,9 @@ def read_session(path):
                 if (isinstance(block, dict) and block.get("type") == "tool_use"
                         and block.get("name") in DELEGATION_TOOLS):
                     given = block.get("input") or {}
-                    if given.get("subagent_type"):
-                        timeline.append(("delegate", given["subagent_type"], stamp, given))
+                    agent = given.get("subagent_type")
+                    if isinstance(agent, str) and agent:
+                        timeline.append(("delegate", agent, stamp, given))
     return start, timeline, cwd
 
 
@@ -247,13 +320,14 @@ def main():
     print("window: sessions started on or after " + since_note)
 
     counts = defaultdict(Counter)       # agent -> bucket -> n
-    others = Counter()                  # non-adapter subagents
+    others = Counter()                  # non-adapter subagents, labels made printable
+    unrecognised = 0                    # workbench-* names this repo does not define
     rows, sessions = [], 0
     for path in files:
         start, timeline, cwd = read_session(path)
         if start is None or start < since_epoch:
             continue
-        if not any(kind == "user" for kind, *_ in timeline):
+        if not any(entry[0] == "user" and entry[2] != "prime" for entry in timeline):
             continue
         sessions += 1
         for index, entry in enumerate(timeline):
@@ -261,11 +335,17 @@ def main():
                 continue
             _, agent, stamp, given = entry
             if not is_adapter_agent(agent):
-                others[agent] += 1
+                if agent.startswith(ADAPTER_PREFIX):
+                    unrecognised += 1
+                else:
+                    others[safe_label(agent)] += 1
                 continue
-            earlier = [e[1] for e in timeline[:index] if e[0] == "user"]
-            before = earlier[-1] if earlier else ""
-            bucket = classify(agent, before, earlier[:-1])
+            prior = [e for e in timeline[:index] if e[0] == "user"]
+            real = [e for e in prior if e[2] != "prime"]
+            humans = [e[1] for e in real]
+            primers = [e[1] for e in prior if e[2] == "prime"]
+            before, before_kind = (real[-1][1], real[-1][2]) if real else ("", "text")
+            bucket = classify(agent, before, before_kind, humans, primers)
             counts[agent][bucket] += 1
             rows.append([
                 path.parent.name, path.stem, stamp, agent, bucket,
@@ -285,6 +365,9 @@ def main():
         total.update(counts[agent])
     if not counts:
         print("  (no delegations to adapter agents in the window)")
+    if unrecognised:
+        print("  (%d delegation(s) to workbench-* names this repo does not define; not shown)"
+              % unrecognised)
     if others:
         print()
         print("other subagents, not part of the adapter: "

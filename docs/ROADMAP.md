@@ -435,9 +435,14 @@ sessions with the adapter installed, cut the adapter or replace the description
 routing with an explicit rule. `scripts/delegation-scan.py` does the counting,
 over Claude Code transcripts only (the adapter is Claude-only):
 
-- A delegation is **task-routed** only if nobody named the agent, nobody named its
-  role, and the session was not opened by pointing at the library. Each of those
-  removes it from the count, on the same reasoning as the skill trial.
+- A delegation is **task-routed** only if the human did none of these: type the
+  agent's name *anywhere earlier in the session*, run a slash command just before,
+  type its role (with inflections: "review", "reviewers", "architecture") in the
+  message just before, or point at the library earlier, including in a
+  continuation summary. Messages typed while the model was mid-turn count. Each
+  removes it from the count, on the same reasoning as the skill trial, and the
+  errors are deliberately in the direction of *fewer* unprompted, since a miscount
+  that cuts the adapter too early is worse than one that cuts it late.
 - Only sessions that **started after the install** are counted, by time of day,
   because agents load at session start. The first version used whole days and
   counted two sessions that began hours before the install; found by reading the
