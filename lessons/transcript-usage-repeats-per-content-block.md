@@ -1,5 +1,5 @@
 ---
-applies-to: [multi-agent]
+applies-to: [python, multi-agent]
 discovered: 2026-10
 status: active
 ---

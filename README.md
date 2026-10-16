@@ -212,8 +212,8 @@ context and does not belong here.
 | [opencode-env-keys-resolve-at-startup](lessons/opencode-env-keys-resolve-at-startup.md) | `opencode`, `windows` | Provider `{env:VAR}` keys resolve once at agent-server startup, not per request |
 | [eslint-bulk-suppressions-race-with-fix-prs](lessons/eslint-bulk-suppressions-race-with-fix-prs.md) | `node`, `eslint` | A rule MR with a bulk-suppressions file and a fix MR each pass alone and fail merged; the second must run `--prune-suppressions` |
 | [psscriptanalyzer-results-differ-by-edition](lessons/psscriptanalyzer-results-differ-by-edition.md) | `windows` | Analyzer rules check against the host's own cmdlets; a clean lint on PowerShell 5.1 can still fail under pwsh. Lint and test under both editions |
-| [transcript-counters-count-your-own-test-runs](lessons/transcript-counters-count-your-own-test-runs.md) | `multi-agent` | A counter over agent transcripts counts your own test sessions, and a whole-day window counts sessions that began before the install; start at the install time and read the sessions behind the number |
-| [transcript-usage-repeats-per-content-block](lessons/transcript-usage-repeats-per-content-block.md) | `multi-agent` | Transcripts repeat one response's usage across several events (about 2.4x overcount if summed); dedupe on the request id and keep the field-wise max |
+| [transcript-counters-count-your-own-test-runs](lessons/transcript-counters-count-your-own-test-runs.md) | `python`, `multi-agent` | A counter over agent transcripts counts your own test sessions, and a whole-day window counts sessions that began before the install; start at the install time and read the sessions behind the number |
+| [transcript-usage-repeats-per-content-block](lessons/transcript-usage-repeats-per-content-block.md) | `python`, `multi-agent` | Transcripts repeat one response's usage across several events (about 2.4x overcount if summed); dedupe on the request id and keep the field-wise max |
 
 Writing a new one: `templates/lesson.md`. It carries the four-part test and the
 closed `applies-to` vocabulary. Apply the test honestly — the ledger is worth
