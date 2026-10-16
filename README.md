@@ -182,6 +182,7 @@ context and does not belong here.
 | [hydration-recovery-leaves-stale-attributes](lessons/hydration-recovery-leaves-stale-attributes.md) | `react`, `nextjs` | Hydration-mismatch recovery re-renders but leaves stale DOM attributes behind |
 | [next-build-vs-live-dev-corrupts-dot-next](lessons/next-build-vs-live-dev-corrupts-dot-next.md) | `nextjs` | `next build` against a running `next dev` server corrupts both; stop dev first |
 | [opencode-env-keys-resolve-at-startup](lessons/opencode-env-keys-resolve-at-startup.md) | `opencode`, `windows` | Provider `{env:VAR}` keys resolve once at agent-server startup, not per request |
+| [eslint-bulk-suppressions-race-with-fix-prs](lessons/eslint-bulk-suppressions-race-with-fix-prs.md) | `node`, `eslint` | A rule MR with a bulk-suppressions file and a fix MR each pass alone and fail merged; the second must run `--prune-suppressions` |
 
 Writing a new one: `templates/lesson.md`. It carries the four-part test and the
 closed `applies-to` vocabulary. Apply the test honestly — the ledger is worth
