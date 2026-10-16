@@ -99,6 +99,20 @@ check "a foreign file at a workbench name is not overwritten" 1 \
 check "the other agents still install"           "$((expected_agents - 1))" \
   "$(find -L "$FOREIGN_HOME/.claude/agents" -maxdepth 1 -name 'workbench-*.md' ! -name 'workbench-reviewer.md' | wc -l | tr -d ' ')"
 
+# The Explore override replaces a built-in for every session on the machine, so it
+# is a separate, deliberate flag and --with-agents must not bring it in.
+check "--with-agents does not install the Explore override" 0 \
+  "$([ -e "$AG_HOME/.claude/agents/Explore.md" ] && echo 1 || echo 0)"
+EX_HOME="$TMP/explore-home"; mkdir -p "$EX_HOME/.claude"
+HOME="$EX_HOME" bash "$REPO/scripts/install.sh" --with-explore-override >/dev/null 2>&1
+check "--with-explore-override installs Explore.md" 1 "$([ -e "$EX_HOME/.claude/agents/Explore.md" ] && echo 1 || echo 0)"
+check "...and installs no workbench-* agents"       0 \
+  "$(find -L "$EX_HOME/.claude/agents" -maxdepth 1 -name 'workbench-*.md' | wc -l | tr -d ' ')"
+OWN_EX_HOME="$TMP/own-explore-home"; mkdir -p "$OWN_EX_HOME/.claude/agents"
+printf -- '---\nname: Explore\ndescription: MY-OWN-EXPLORE\n---\n' > "$OWN_EX_HOME/.claude/agents/Explore.md"
+HOME="$OWN_EX_HOME" bash "$REPO/scripts/install.sh" --with-explore-override >/dev/null 2>&1
+check "a user's own Explore.md is not overwritten" 1 "$(count 'MY-OWN-EXPLORE' "$OWN_EX_HOME/.claude/agents/Explore.md")"
+
 HOME="$AG_HOME" bash "$REPO/scripts/install.sh" --no-such-flag >/dev/null 2>&1
 rc=$?
 check "an unknown flag exits non-zero rather than being ignored" 1 "$([ "$rc" -ne 0 ] && echo 1 || echo 0)"

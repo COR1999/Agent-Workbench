@@ -67,6 +67,19 @@ body  "$f" 'focused|narrow'            "narrow checks first"
 body  "$f" 'full (suite|test)'         "full suite last"
 body  "$f" 'exit code'                 "reports exit codes, not impressions"
 
+echo "overrides/Explore (replaces the built-in, so it must not widen it):"
+f="$ROOT/adapters/claude-code/overrides/Explore.md"
+check "$f" name '^Explore$'            "named exactly Explore, or it overrides nothing"
+check "$f" model '^haiku$'             "runs on the cheap model"
+check "$f" effort '^low$'              "low effort"
+check "$f" description '.{40,}'        "description long enough to route on"
+body  "$f" 'managed by Agent-Workbench' "carries the managed marker"
+if [ -f "$f" ] && ! field "$f" tools | grep -qE 'Edit|Write|Bash|NotebookEdit|Agent'; then
+  ok "read-only tools only: no Edit, Write, Bash or Agent"
+else
+  fail "Explore override must exist and hold no Edit/Write/Bash/Agent"
+fi
+
 echo
 if [ "$fails" -eq 0 ]; then echo "all agent invariants held."; else echo "$fails invariant(s) failed."; fi
 exit "$fails"
