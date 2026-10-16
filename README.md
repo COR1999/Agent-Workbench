@@ -50,7 +50,7 @@ are mined for patterns that should become a new skill, a CI check, or a cut. Thi
 is currently a deliberate, human-triggered pass — treat it as the intended
 direction, not a running automated loop (see `docs/CONTEXT-LOOP.md`).
 
-**5 — Sign your work.** Every commit, PR, and issue you author carries a `Model:`
+**5 — Sign your work.** Every commit, PR, and issue you author carries a `Co-Authored-By:`
 line naming you — provider, model, version (see `AGENTS.md` "Work records"). This
 is how a contribution is traced to a specific model and weighted for trust.
 
@@ -61,6 +61,7 @@ AGENTS.md          hard rules — always true, no conditions
 CLAUDE.md          @AGENTS.md
 VERSION            the workbench version, stamped into projects on import
 CHANGELOG.md       what changed between versions
+environments/      machine-specific facts; install.sh appends the matching one
 lessons/           conditional knowledge — true when applies-to matches
 templates/         lesson.md, project-AGENTS.md
 skills/            nine skills (each SKILL.md + VALIDATION.md)
@@ -181,6 +182,7 @@ context and does not belong here.
 | [hydration-recovery-leaves-stale-attributes](lessons/hydration-recovery-leaves-stale-attributes.md) | `react`, `nextjs` | Hydration-mismatch recovery re-renders but leaves stale DOM attributes behind |
 | [next-build-vs-live-dev-corrupts-dot-next](lessons/next-build-vs-live-dev-corrupts-dot-next.md) | `nextjs` | `next build` against a running `next dev` server corrupts both; stop dev first |
 | [opencode-env-keys-resolve-at-startup](lessons/opencode-env-keys-resolve-at-startup.md) | `opencode`, `windows` | Provider `{env:VAR}` keys resolve once at agent-server startup, not per request |
+| [eslint-bulk-suppressions-race-with-fix-prs](lessons/eslint-bulk-suppressions-race-with-fix-prs.md) | `node`, `eslint` | A rule MR with a bulk-suppressions file and a fix MR each pass alone and fail merged; the second must run `--prune-suppressions` |
 | [psscriptanalyzer-results-differ-by-edition](lessons/psscriptanalyzer-results-differ-by-edition.md) | `windows` | Analyzer rules check against the host's own cmdlets; a clean lint on PowerShell 5.1 can still fail under pwsh. Lint and test under both editions |
 
 Writing a new one: `templates/lesson.md`. It carries the four-part test and the

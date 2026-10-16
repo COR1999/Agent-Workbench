@@ -7,6 +7,21 @@ judgement or the import contract changed in a way that could alter results;
 Skills install once per machine, so only one version is ever active — versions
 exist for communication and rollback, not concurrent use.
 
+## [Unreleased]
+
+### Changed
+- **The Environment section is per machine.** It was hard-coded to Windows/Git
+  Bash in `AGENTS.md`, so installing on any other OS loaded false rules into every
+  session. It now lives in `environments/<name>.md`; `install.sh` picks one by
+  `uname -s` (or `WORKBENCH_ENV`) and appends it to the installed rules block.
+  `AGENTS.md` no longer contains machine facts. Tested in `install-smoke.sh`.
+- **Model provenance is a `Co-Authored-By:` trailer, not `Model:`.** `Co-Authored-By:`
+  is the trailer form git hosts already recognise; a bespoke `Model:` line is
+  not. Updated in `AGENTS.md`, the README, and the
+  `explain-and-open-pr` skill. The installed copy in `~/.claude/CLAUDE.md` had
+  already diverged to this wording by hand, so the next `install.sh` run would
+  have silently reverted it.
+
 ## [0.8.0] — 2026-08-24
 
 The release that made the library measurable, and then reported what the

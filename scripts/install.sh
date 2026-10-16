@@ -62,6 +62,24 @@ END="<!-- workbench-rules:end -->"
 LEGACY_START="<!-- pas-rules:start"
 LEGACY_END="<!-- pas-rules:end -->"
 
+# Machine-specific facts (OS, shell quirks, what is installed) are not rules that
+# hold everywhere, so they live in environments/ and only the matching file is
+# appended. WORKBENCH_ENV=<file-stem> overrides the uname guess.
+env_name="${WORKBENCH_ENV:-}"
+if [ -z "$env_name" ]; then
+  case "$(uname -s)" in
+    Linux*)                env_name="linux" ;;
+    MINGW*|MSYS*|CYGWIN*)  env_name="windows-git-bash" ;;
+  esac
+fi
+ENV_FILE=""
+if [ -n "$env_name" ] && [ -f "$REPO_DIR/environments/$env_name.md" ]; then
+  ENV_FILE="$REPO_DIR/environments/$env_name.md"
+  echo "environment: $env_name"
+else
+  echo "environment: none for '${env_name:-$(uname -s)}' — rules installed without an Environment section (add environments/<name>.md)"
+fi
+
 if [ -d "$HOME/.claude" ]; then
   [ -f "$CLAUDE_MD" ] || : > "$CLAUDE_MD"
   # strip any existing managed block
@@ -80,6 +98,10 @@ if [ -d "$HOME/.claude" ]; then
   {
     printf '\n%s\n' "$START"
     cat "$REPO_DIR/AGENTS.md"
+    if [ -n "$ENV_FILE" ]; then
+      printf '\n'
+      cat "$ENV_FILE"
+    fi
     printf '%s\n' "$END"
   } >> "$CLAUDE_MD"
   echo "installed machine rules into $CLAUDE_MD"
