@@ -491,6 +491,51 @@ made from this repository**:
    Computed from local session stores; nothing leaves the machine. The share caps
    any saving. **If it is under 20%, JEV integration is dropped.** 20% is
    arbitrary and is fixed here, before the number exists.
+
+   **Built and run 2026-10-16: `scripts/spend-scan.py`. Result: leaning DROP, not
+   decisive.** What was established and what was not:
+
+   - *Accounting is sound.* Computed spend $122.0 against Claude Code's own
+     `cost-state` $120.2: 0.4% apart on the first run, 1.5% on the last, the gap being
+     the sessions still in progress, whose `cost-state` lags. The store repeats usage
+     once per content block (6,970 usage events, 2,859 API responses), so a naive sum
+     overcounts about 2.4x; the scanner dedupes on `requestId`.
+   - *Where the money goes.* Cache reads 39%, cache writes 37%, output 24%. Cache
+     writes are deferred rather than removed when a step is skipped, so the ceiling
+     the rule reads excludes them.
+   - *The number.* Fork-like steps (recovery, check, inspect) are 11.3% of spend on
+     the removable basis, band 11.3-16.8% with every unclassified step counted as a
+     fork. On the gross basis it is 18.9% and the band is 18.9-28.7%, which straddles
+     20%. Deliberation-only, 1.9%. All three assume a free, perfect router that never
+     escalates; none is a saving estimate.
+   - *Why "decisive" would be wrong.*
+     1. **The basis was chosen after a draft figure was seen.** The architect-agent
+        run that designed this saw crude draft numbers either side of 20% before the
+        definition was fixed. The 20% threshold was fixed before any number; the
+        removable basis was not. On the gross basis the answer is UNDETERMINED.
+     2. **The validity gate passed by a hair.** An independent agent labelled
+        samples blind (it saw the command text, never the rules' class). The first
+        round, on the rows used to find bugs, agreed 71.2%, below the 80% floor, and
+        exposed two real classifier bugs (a `cd dir &&` prefix left unclassified; a
+        reader that merely named a linter scored as a check run). After the fixes, a
+        second round on rows never tuned on agreed **80.0% (60 of 75)**, exactly at the
+        floor, with a sampling error of roughly 9 points at that size. Decision-level
+        agreement (fork / non-fork / unclassified) was 82.7%.
+     3. **The errors that matter cross the line.** Five of 75 rows were classed
+        program or artifact by the rules and inspect by the labeller. Scaled to those
+        classes' spend that is roughly 5 points of fork share the band does not cover,
+        which would put its top end near 22%.
+     4. **The store includes the author's own scanner and verification sessions**, and
+        one session is about 19% of spend.
+   - *What it supports.* On this store, with a free and perfect router, fork-like
+     steps are most likely 10-20% of notional spend. The ceiling is small and sits
+     near the threshold, the router is unproven, and its cost and escalation rate are
+     unknown. That is a reason not to build a JEV layer now, not a proof that one
+     could never pay. It is a decision for the human; nothing here is dropped
+     automatically.
+   - *Not yet done:* measurements 2 and 3 below; re-running after more real sessions
+     have accumulated and the author's test sessions fall out of the window; labelling
+     by a human rather than a model.
 2. **Official docs.** Read TypeSafe's own documentation for the API, pricing and
    whether it can run locally. Until then, nothing above is more than secondhand.
 3. **Skill-routing replay.** Feed `build-replay-set.py`'s labelled situations to a

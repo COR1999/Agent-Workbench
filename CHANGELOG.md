@@ -9,6 +9,24 @@ exist for communication and rollback, not concurrent use.
 
 ## [Unreleased]
 
+### Added
+- **`scripts/spend-scan.py`: roadmap measurement 1 for the JEV question.** What share
+  of real token spend goes on fork-like steps (recovery, check, inspect), computed
+  locally from session transcripts. Built to a design an independent architect-agent
+  run produced after checking the real store: a step is one API request deduped by
+  `requestId` (the store repeats usage once per content block, so naive summing
+  overcounts about 2.4x) keeping the field-wise max (streaming partials); costs use
+  5-minute and 1-hour cache writes separately and the Haiku 100k tier; an unknown
+  model is counted but never priced as zero; the result is three ceilings
+  (gross, removable = minus cache writes, deliberation-only), none called a saving,
+  plus an unclassified band and a verdict of `DROP` / `NOT DROPPED` /
+  `UNDETERMINED`. Cross-checks its total against Claude Code's own `cost-state`.
+  `--sample-round` and `--agreement` make the validity gate mechanical: label a
+  sample blind, and the verdict may not be read below 80% agreement. stdout prints
+  only fixed class labels; commands go to the TSV, which `--out` confines to the
+  working directory. `tests/spend-scan.sh`, mutation-checked, runs in the ubuntu
+  `guards` job.
+
 ### Fixed
 - **`delegation-scan.py` scored human-caused delegations as unprompted.** An
   independent `workbench-reviewer` run found that four of the six claims in my
