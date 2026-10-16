@@ -8,10 +8,23 @@
 #
 # Per-project lessons are NOT handled here — those are imported per project with
 # adopt.sh. Only machine-global things (skills, environment rules) install here.
+#
+# Opt-in:  --with-agents  also installs the Claude Code delegation agents from
+#          adapters/claude-code/ into ~/.claude/agents. Off by default: they are
+#          Claude-only, and the portable core must not depend on them.
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SKILLS_SRC="$REPO_DIR/skills"
+AGENTS_SRC="$REPO_DIR/adapters/claude-code/agents"
+
+with_agents=0
+for arg in "$@"; do
+  case "$arg" in
+    --with-agents) with_agents=1 ;;
+    *) echo "unknown argument: $arg" >&2; echo "usage: install.sh [--with-agents]" >&2; exit 2 ;;
+  esac
+done
 
 # --- 1. skills ----------------------------------------------------------------
 TARGETS=(
@@ -47,6 +60,32 @@ for target in "${TARGETS[@]}"; do
   done
 done
 [ "$installed_any" = 1 ] || echo "no harness skills dir found (~/.claude or ~/.agents) — skills not installed"
+
+# --- 1b. delegation agents (opt-in) -------------------------------------------
+# Only files named workbench-*.md are ever touched, and one is replaced only if it
+# carries the managed marker (or is a dangling link). A user's own agent at the
+# same name is left alone and reported, because overwriting it would be silent.
+if [ "$with_agents" = 1 ]; then
+  if [ -d "$HOME/.claude" ]; then
+    mkdir -p "$HOME/.claude/agents"
+    echo "installing agents into $HOME/.claude/agents"
+    for src in "$AGENTS_SRC"/workbench-*.md; do
+      [ -f "$src" ] || continue
+      dst="$HOME/.claude/agents/$(basename "$src")"
+      if [ -e "$dst" ] || [ -L "$dst" ]; then
+        if [ -L "$dst" ] && [ ! -e "$dst" ]; then
+          :
+        elif ! grep -q 'managed by Agent-Workbench' "$dst" 2>/dev/null; then
+          echo "  skip    $dst (not managed by Agent-Workbench; left alone)"
+          continue
+        fi
+      fi
+      link_or_copy "$src" "$dst"
+    done
+  else
+    echo "skip agents: no ~/.claude"
+  fi
+fi
 
 # --- 2. machine rules into ~/.claude/CLAUDE.md --------------------------------
 # The rules are COPIED (not @-imported) on purpose: an @import with an absolute

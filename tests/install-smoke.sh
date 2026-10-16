@@ -76,6 +76,33 @@ check "unknown env: no Environment section"  0 "$(count '^## Environment' "$ENV_
 check "unknown env: rules still installed"   1 "$(count 'workbench-rules:start' "$ENV_HOME/.claude/CLAUDE.md")"
 check "AGENTS.md itself carries no Environment section" 0 "$(count '^## Environment' "$REPO/AGENTS.md")"
 
+echo "install.sh — agents are opt-in:"
+check "a default install creates no agents directory" 0 \
+  "$([ -d "$FAKE_HOME/.claude/agents" ] && echo 1 || echo 0)"
+AG_HOME="$TMP/agents-home"; mkdir -p "$AG_HOME/.claude/agents"
+printf -- '---\nname: mine\ndescription: MY-OWN-AGENT\n---\n' > "$AG_HOME/.claude/agents/mine.md"
+HOME="$AG_HOME" bash "$REPO/scripts/install.sh" --with-agents >/dev/null 2>&1
+expected_agents="$(find "$REPO/adapters/claude-code/agents" -maxdepth 1 -name 'workbench-*.md' | wc -l | tr -d ' ')"
+# -L for the same reason as the skills count above: the installer symlinks.
+installed_agents="$(find -L "$AG_HOME/.claude/agents" -maxdepth 1 -name 'workbench-*.md' | wc -l | tr -d ' ')"
+check "--with-agents installs every agent"       "$expected_agents" "$installed_agents"
+check "a user's own agent file survives"         1 "$(count 'MY-OWN-AGENT' "$AG_HOME/.claude/agents/mine.md")"
+HOME="$AG_HOME" bash "$REPO/scripts/install.sh" --with-agents >/dev/null 2>&1
+installed_again="$(find -L "$AG_HOME/.claude/agents" -maxdepth 1 -name 'workbench-*.md' | wc -l | tr -d ' ')"
+check "re-running adds no duplicates"            "$expected_agents" "$installed_again"
+
+FOREIGN_HOME="$TMP/foreign-home"; mkdir -p "$FOREIGN_HOME/.claude/agents"
+printf -- '---\nname: workbench-reviewer\ndescription: FOREIGN-FILE\n---\n' > "$FOREIGN_HOME/.claude/agents/workbench-reviewer.md"
+HOME="$FOREIGN_HOME" bash "$REPO/scripts/install.sh" --with-agents >/dev/null 2>&1
+check "a foreign file at a workbench name is not overwritten" 1 \
+  "$(count 'FOREIGN-FILE' "$FOREIGN_HOME/.claude/agents/workbench-reviewer.md")"
+check "the other agents still install"           "$((expected_agents - 1))" \
+  "$(find -L "$FOREIGN_HOME/.claude/agents" -maxdepth 1 -name 'workbench-*.md' ! -name 'workbench-reviewer.md' | wc -l | tr -d ' ')"
+
+HOME="$AG_HOME" bash "$REPO/scripts/install.sh" --no-such-flag >/dev/null 2>&1
+rc=$?
+check "an unknown flag exits non-zero rather than being ignored" 1 "$([ "$rc" -ne 0 ] && echo 1 || echo 0)"
+
 echo "install.sh — a HOME with no harness directory:"
 BARE_HOME="$TMP/bare-home"; mkdir -p "$BARE_HOME"
 HOME="$BARE_HOME" bash "$REPO/scripts/install.sh" >/dev/null 2>&1
