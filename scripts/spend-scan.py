@@ -131,12 +131,15 @@ CHECK_PATTERNS = re.compile(
     r"|\bcargo\s+(?:test|check|clippy)\b|\bgo\s+(?:test|vet)\b|\bmake\s+(?:test|check|lint)\b"
     r"|\bruff\b|\bmypy\b|\bflake8\b")
 PROGRAM_PATTERNS = re.compile(
-    r"<<|\b(?:python3?|node|ruby|perl|bash|sh|zsh)\s+-[ce]\b|\bfor\b.*\bdo\b|\bwhile\b.*\bdo\b", re.S)
+    r"<<|\b(?:python3?|node|ruby|perl|bash|sh|zsh)\s+-[ce]\b|\bfor\s+\w+\s+in\b"
+    r"|\bwhile\s+(?:read|true|false|\[|\(|:)")
 
 
 def strip_noise(command):
     """Drop redirects to /dev/null and fd duplication, which are not writes."""
-    return re.sub(r"\d*>\s*&\d|&>\s*/dev/null|\d*>>?\s*/dev/null", " ", command)
+    # `\d?` and not `\d*`: a file descriptor is one digit, and an unbounded run retried at
+    # every start position is quadratic on a long digit string (transcripts are untrusted).
+    return re.sub(r"\d?>\s*&\d|&>\s*/dev/null|\d?>>?\s*/dev/null", " ", command)
 
 
 def without_quotes(command):
@@ -609,7 +612,7 @@ def main():
     for row in rows:
         by_class[row[4]].append(row)
     for klass_rows in by_class.values():
-        klass_rows.sort(key=lambda r: hashlib.md5(r[-1].encode("utf-8")).hexdigest())
+        klass_rows.sort(key=lambda r: hashlib.sha256(r[-1].encode("utf-8")).hexdigest())
         first = max(args.sample_round, 0) * SAMPLE_PER_CLASS
         for row in klass_rows[first:first + SAMPLE_PER_CLASS]:
             row[10] = "1"

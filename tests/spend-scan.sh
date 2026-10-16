@@ -84,6 +84,7 @@ if scenario == "classes":
     step(read=K, blocks=[tool("Read", file_path="a"), tool("Edit", file_path="a")])  # artifact beats inspect
     step(read=K, blocks=[bash("ls > /dev/null 2>&1")])             # inspect: /dev/null is not a write
     step(read=K, blocks=[bash("echo hi > out.txt")])               # artifact
+    step(read=K, blocks=[bash("for f in a b; do cat $f; done")])   # program: a loop, no heredoc needed
     step(read=K, blocks=[bash("cd /tmp && grep -v x notes.md | sed -n 1,9p | cut -c1-80")])   # inspect: cd takes an argument
     step(read=K, blocks=[bash("sed -n 1,5p eslint.config.js; git diff --stat upstream/main")])  # inspect: naming a linter is not running one
     step(read=K, blocks=[bash("cd /tmp && npx eslint src/")])      # check: here the linter IS run
@@ -102,6 +103,9 @@ elif scenario == "tier":
 elif scenario == "unknown":
     step(model="claude-mystery-9", read=5000000, outp=1000)
     step(read=1000000)
+elif scenario == "pathological":
+    # a transcript is untrusted input: a pathological command must not stall the scan
+    step(read=K, blocks=[bash("echo " + "9" * 60000 + " > /dev/null")])
 elif scenario == "sample":
     for i in range(20):                      # 20 inspect steps: round 0 takes 15, round 1 the other 5
         step(read=K, blocks=[bash("cat file%d" % i)])
@@ -148,10 +152,17 @@ check "answer"       1 "$(cls answer 1)"
 check "inspect (Read, env prefix, a rejection, >/dev/null, cd then read, naming a linter, glab view, echo of git reads)" 1 "$(cls inspect 8)"
 check "check (a test script, and a linter that is actually run)" 1 "$(cls check 2)"
 check "artifact (Edit, git commit, Read+Edit in one step, echo > file, glab mr create)" 1 "$(cls artifact 5)"
-check "program (a heredoc into an interpreter)"                               1 "$(cls program 1)"
+check "program (a heredoc into an interpreter, and a for loop)"               1 "$(cls program 2)"
 check "delegate"     1 "$(cls delegate 1)"
 check "recovery (only after a real failure)"                                  1 "$(cls recovery 1)"
 check "unclassified is reported, never folded into either side"                1 "$(cls unclassified 1)"
+
+echo "spend-scan — hostile input cannot stall the scan:"
+mkhome pathological
+start=$SECONDS
+HOME="$TMP/h-pathological" timeout 20 "$PY" -I "$REPO/scripts/spend-scan.py" --out out-path.tsv >/dev/null 2>&1; rc=$?
+check "a 60,000-digit command is scanned (not a regex stall)" 0 "$rc"
+check "...in well under 10 seconds"                           1 "$([[ $((SECONDS - start)) -lt 10 ]] && echo 1 || echo 0)"
 
 echo "spend-scan — privacy:"
 check "no command-derived text on stdout"   0 "$(printf '%s\n' "$o" | grep -c 'SECRET')"

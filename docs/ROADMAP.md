@@ -527,6 +527,11 @@ made from this repository**:
         which would put its top end near 22%.
      4. **The store includes the author's own scanner and verification sessions**, and
         one session is about 19% of spend.
+   - *Sampling note.* The two labelled rounds above were drawn with the scanner's first
+     sample ordering (an md5 of the request id). A quality-gate finding then moved it to
+     sha256, so rounds drawn from now on are different rows. The labelled rows are kept
+     locally and the numbers above stand; the two rounds still share no row by
+     construction.
    - *What it supports.* On this store, with a free and perfect router, fork-like
      steps are most likely 10-20% of notional spend. The ceiling is small and sits
      near the threshold, the router is unproven, and its cost and escalation rate are
