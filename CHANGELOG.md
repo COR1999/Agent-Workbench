@@ -10,6 +10,12 @@ exist for communication and rollback, not concurrent use.
 ## [Unreleased]
 
 ### Added
+- **`make-issue` skill.** Fires on "make issue" (and open/log/file/raise an issue).
+  Reads the repository's live labels and its own issue rules, searches for a duplicate
+  first, picks labels from the content (never invents or silently creates one), writes
+  a body with evidence and a done-when list plus the model's `Co-Authored-By`, files it
+  and reads it back. Filing is not working the issue. Not field-validated; see its
+  VALIDATION.md. Four invariants in `tests/skill-invariants.sh`.
 - **`scripts/spend-scan.py`: roadmap measurement 1 for the JEV question.** What share
   of real token spend goes on fork-like steps (recovery, check, inspect), computed
   locally from session transcripts. Built to a design an independent architect-agent

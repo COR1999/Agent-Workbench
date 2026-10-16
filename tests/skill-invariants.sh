@@ -53,6 +53,12 @@ echo "grilling:"
 check skills/grilling/SKILL.md "[Nn]ever answer your own questions" "human-in-the-loop; never self-answers"
 check skills/grilling/SKILL.md "[Ii]nterrogate, don't implement" "interrogates, does not build"
 
+echo "make-issue:"
+check skills/make-issue/SKILL.md "[Nn]ever invent a label"        "applies only labels that exist; never invents one"
+check skills/make-issue/SKILL.md "duplicate before writing"       "searches for a duplicate before filing"
+check skills/make-issue/SKILL.md "Co-Authored-By"                 "names the authoring model in the body"
+check skills/make-issue/SKILL.md "not\*{0,2} working it"           "filing an issue is not starting the work"
+
 echo "agentic-vocabulary:"
 check skills/agentic-vocabulary/SKILL.md "inventing a definition" "look up, don't invent, unknown terms"
 
