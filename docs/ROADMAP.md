@@ -658,6 +658,15 @@ it; they are owed nothing.
   `AGENTS.md` rules block that `install.sh` loads once per machine. Left as a
   decision rather than actioned, because it moves the boundary between the three
   knowledge kinds and that boundary is the project's core claim.
+
+  **Observed on a real project, 2026-10-16.** Adopting a Next.js portfolio site
+  inlined 12 lessons; two were this library's own transcript-tooling lessons, tagged
+  `[multi-agent]` alone, which matches every project on a two-harness machine. They
+  were retagged `[python, multi-agent]` (the site dropped to 10) but the class
+  remains: a lesson that is only true for people building agent tooling has no
+  project signal to hang on. The structural answer is still undecided; until then,
+  tag such lessons with the narrowest project-detectable value, and adopt a real
+  project once after adding a lesson to see what lands in it.
 - **`preflight-public.sh` runs in CI only** (deliberate). CI on a pull request
   blocks the merge, but the branch push is already public — this narrows the
   window, it does not close it.
