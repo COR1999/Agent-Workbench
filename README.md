@@ -50,7 +50,7 @@ are mined for patterns that should become a new skill, a CI check, or a cut. Thi
 is currently a deliberate, human-triggered pass — treat it as the intended
 direction, not a running automated loop (see `docs/CONTEXT-LOOP.md`).
 
-**5 — Sign your work.** Every commit, PR, and issue you author carries a `Model:`
+**5 — Sign your work.** Every commit, PR, and issue you author carries a `Co-Authored-By:`
 line naming you — provider, model, version (see `AGENTS.md` "Work records"). This
 is how a contribution is traced to a specific model and weighted for trust.
 
@@ -61,6 +61,7 @@ AGENTS.md          hard rules — always true, no conditions
 CLAUDE.md          @AGENTS.md
 VERSION            the workbench version, stamped into projects on import
 CHANGELOG.md       what changed between versions
+environments/      machine-specific facts; install.sh appends the matching one
 lessons/           conditional knowledge — true when applies-to matches
 templates/         lesson.md, project-AGENTS.md
 skills/            nine skills (each SKILL.md + VALIDATION.md)
