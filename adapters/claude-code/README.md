@@ -19,6 +19,9 @@ of those names that does not carry the managed marker is left alone and reported
 | `workbench-reviewer` | sonnet, effort high | Read, Grep, Glob, Bash | A second look before declaring done or merging. Returns a table of claim, verdict (`verified` / `incorrect` / `unresolved`), evidence, correction. |
 | `workbench-patcher` | sonnet | Read, Grep, Glob, Edit, Write, Bash | Independent multi-file edits in parallel, each patch owning distinct files. Runs in a git worktree, never commits. |
 
+Files are installed as links where the OS allows it and as copies otherwise. A
+copy does not follow `git pull`: re-run `install.sh --with-agents` after pulling.
+
 Routing is the `description:` field of each file. That is what lets the main
 session delegate without being told which agent to use.
 
