@@ -391,9 +391,101 @@ a known 0/9 baseline — not "which wording worked".
 
 - Dreaming (#41), model/task routing (#42). Both were "future" with no build
   trigger; an issue with no trigger is a wish, not a plan.
+  **#42 reopened 2026-10-16, narrowly** — see "Delegation and the JEV question".
 
 **Not built until the trial resolves.** If skills do not route themselves, every
-layer built on top of them is a castle on sand.
+layer built on top of them is a castle on sand. The one exception, and the reason
+for it, is the next section.
+
+## Delegation and the JEV question (reopened 2026-10-16)
+
+**The trigger.** #42 was closed because nothing asked for it. The human now works
+with a mid-tier model as the main session and wants noisy verification, review and
+independent multi-file edits handed to other models. That is a build trigger, so
+#42 is reopened, **narrowly**:
+
+- `adapters/claude-code/` holds three opt-in agents (`workbench-qa-runner`,
+  `workbench-reviewer`, `workbench-patcher`). Installed only by
+  `install.sh --with-agents`. A default install is unchanged.
+- It is **outside the portable core**, because this document forbids a
+  Claude-only mechanism there. Nothing in `skills/`, `lessons/` or `AGENTS.md`
+  depends on it.
+- #42's constraint — routing should be a policy the workflow owns, not something
+  individual skills hardcode — is respected in the letter: models are named in the
+  adapter's agent files, not in any skill. It is **not** respected in spirit
+  everywhere: there is still no workflow runtime, and the agents' own
+  `description:` fields are the routing policy. Stated so it is a known deviation.
+
+### The castle-on-sand risk applies to this too
+
+An agent is reached the way a skill is: the main model reads a description and
+decides. The measured rate for skills is roughly one in ten. Nothing suggests
+agent descriptions do better, so the adapter is a **trial, not a feature**.
+
+**Claim under test.** The main session delegates to a `workbench-*` agent, unasked,
+in situations where one applies. Judged on the same footing as the skills: count
+**task-routed** delegations only, not ones where the human named the agent.
+**Decision rule, fixed now:** if there are zero task-routed delegations by 35
+sessions with the adapter installed, cut the adapter or replace the description
+routing with an explicit rule. Counting uses the session stores
+`scripts/skill-usage-scan.py` already reads, looking for `workbench-*` subagent
+calls. That counter does not exist yet.
+
+### JEV: what is established, and what is not
+
+JEV is TypeSafe AI's small "System-1" decision model: it chooses among options the
+host supplies and generates no text. It was proposed as a layer for the cheap
+decisions (which notes to load, which worker, what to do after a failure, which
+checks first). Findings as of 2026-10-16, all secondhand — **no JEV call has been
+made from this repository**:
+
+- **No paper.** A search found no arXiv paper or formal benchmark. Coverage is
+  vendor docs, tutorials and promotional posts.
+- **Speed.** One vendor-cited figure says 193.6x faster and 444.6x cheaper, with no
+  method found. The one independent reproduction found measured the *mechanism* on
+  a small open model at 1.83x (463 ms against 848 ms).
+- **Accuracy.** The only evaluation found is a third-party routing lab: 100% on a
+  50-case synthetic holdout, unstable on borderline cases (identical input split
+  between two actions, confidence 0.24-0.32), and it says it does not establish
+  production performance.
+- **The "$110 a day to $4" figure is a model, not a measurement.** It assumes
+  10,000 forks a day and that only 1% need escalating to the large model, at
+  $0.011 per fork direct and $0.038 per escalated fork. Break-even is about 29%
+  escalated; above that the layered setup costs more than asking the large model
+  every time. The routing lab's own result is that borderline cases are where it
+  wavers, which is where escalation happens.
+- **Most of the "four forks" need no model.** Which notes to load is `applies-to`
+  plus `adopt.sh`; which tests first is a script; a retry counter belongs in code.
+  JEV is only a candidate where the choice is fuzzy.
+- **JEV cannot process data.** It picks from a list. Bulk transforms and parsing
+  stay scripts or a cheap model.
+
+**Not built; three measurements first, in this order, each able to say no.**
+
+1. **Spend share, local only.** What fraction of real token spend goes on
+   fork-like turns (tool choice, recovery after a failure, which check to run)?
+   Computed from local session stores; nothing leaves the machine. The share caps
+   any saving. **If it is under 20%, JEV integration is dropped.** 20% is
+   arbitrary and is fixed here, before the number exists.
+2. **Official docs.** Read TypeSafe's own documentation for the API, pricing and
+   whether it can run locally. Until then, nothing above is more than secondhand.
+3. **Skill-routing replay.** Feed `build-replay-set.py`'s labelled situations to a
+   JEV router with the nine skills plus "none" as the options, and compare against
+   the current description routing and a plain-LLM baseline, **including sampled
+   non-applicable situations** (the replay set holds only applicable ones, so
+   without negatives any router that always fires looks perfect). Metric fixed as
+   in guard 3 above: of applicable-and-missed holdout examples, how many it routes
+   correctly, with the false-fire rate reported beside it. Guard 5 applies: the
+   judge is the objective label, not a model.
+
+**Constraints on the replay.** Only the genericized fixtures may be sent to a
+third-party API. Real session transcripts come from private work and **must not**
+leave the machine. Creating a provider key is the human's decision.
+
+**Where it would live if it passes:** behind MCP (`jev mcp`), so it stays portable
+across harnesses — and it still has to be *called*, which is the same reachability
+problem. Passing the replay shows the decision is learnable; it does not show the
+model will ask.
 
 ## Audience
 
