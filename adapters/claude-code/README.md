@@ -86,7 +86,7 @@ Written 2026-10-16 from the Claude Code documentation, not from use:
 - That the main session actually delegates to these on its own. The library's
   central measurement is that skills are reached about one time in ten, and a
   description-routed agent faces the same problem. The trial in `docs/ROADMAP.md`
-  counts it.
+  counts it, with `python scripts/delegation-scan.py`.
 - That the patcher's worktree result is handed back the way the description
   assumes.
 - That the override works as intended. Tested on Claude Code 2.1.296, Linux, with

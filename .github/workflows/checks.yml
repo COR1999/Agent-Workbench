@@ -62,3 +62,9 @@ jobs:
       # this repository and none produced an error anywhere.
       - name: lesson ledger consistency
         run: python scripts/lesson-audit.py --check
+
+      # The delegation trial's decision rule hangs on this scanner, so the
+      # scanner's own failure modes (naming an agent must not count as unprompted)
+      # are gated. Python-dependent, so here and not in the OS matrix.
+      - name: delegation scanner
+        run: bash tests/delegation-scan.sh

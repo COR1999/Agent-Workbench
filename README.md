@@ -71,6 +71,7 @@ scripts/
   adopt.sh         per-project import (idempotent)
   unadopt.sh       remove the import from a project
   skill-usage-scan.py  count skill firings across every local agent store
+  delegation-scan.py   count delegations to the adapter's agents, and who prompted them
   build-replay-set.py  turn past sessions into labelled routing examples
   lesson-audit.py      check the ledger against the applies-to matching rule
 docs/
@@ -102,6 +103,7 @@ bash tests/skill-invariants.sh
 bash tests/import-migration.sh
 bash tests/install-smoke.sh
 bash tests/agents-invariants.sh
+bash tests/delegation-scan.sh
 ```
 
 `skill-invariants` locks each skill's load-bearing rules so they can't be silently
@@ -127,13 +129,21 @@ gains `Edit` still loads. The test fails instead — read-only roles hold no wri
 tools, the patcher keeps its worktree isolation, the expensive agent keeps its
 "when not to use me".
 
+`delegation-scan` pins the scanner that decides whether the delegation trial has
+failed. Its failure modes matter more than its happy path: naming an agent, naming
+its role, or opening a session by pointing at the library must each *remove* a
+delegation from the unprompted count, and a session that began before the install
+must not count at all. It runs on synthetic transcripts in a throwaway `HOME`.
+
 Exit 0 = all held. No build step, no dependencies.
 
-All four run in CI on **ubuntu, macOS and Windows**. That matrix earned itself on
+The first four run in CI on **ubuntu, macOS and Windows**. That matrix earned itself on
 its first run: a GNU-only `sed` idiom used to trim trailing blank lines emitted an
 *empty* file under BSD `sed`, so on macOS adopting a project destroyed that
 project's `AGENTS.md` while reporting success. See
 [gnu-sed-idioms-empty-files-on-bsd](lessons/gnu-sed-idioms-empty-files-on-bsd.md).
+`delegation-scan` runs in the ubuntu `guards` job only: it needs Python, which the
+other Python guard already assumes there.
 
 ## Working across sessions
 
@@ -192,6 +202,7 @@ context and does not belong here.
 | [opencode-env-keys-resolve-at-startup](lessons/opencode-env-keys-resolve-at-startup.md) | `opencode`, `windows` | Provider `{env:VAR}` keys resolve once at agent-server startup, not per request |
 | [eslint-bulk-suppressions-race-with-fix-prs](lessons/eslint-bulk-suppressions-race-with-fix-prs.md) | `node`, `eslint` | A rule MR with a bulk-suppressions file and a fix MR each pass alone and fail merged; the second must run `--prune-suppressions` |
 | [psscriptanalyzer-results-differ-by-edition](lessons/psscriptanalyzer-results-differ-by-edition.md) | `windows` | Analyzer rules check against the host's own cmdlets; a clean lint on PowerShell 5.1 can still fail under pwsh. Lint and test under both editions |
+| [transcript-counters-count-your-own-test-runs](lessons/transcript-counters-count-your-own-test-runs.md) | `multi-agent` | A counter over agent transcripts counts your own test sessions, and a whole-day window counts sessions that began before the install; start at the install time and read the sessions behind the number |
 
 Writing a new one: `templates/lesson.md`. It carries the four-part test and the
 closed `applies-to` vocabulary. Apply the test honestly — the ledger is worth
