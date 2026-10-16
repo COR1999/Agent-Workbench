@@ -101,6 +101,54 @@ HOME="$H4" "$PY" -I "$REPO/scripts/delegation-scan.py" --since nonsense --out "$
 rc=$?
 check "a malformed --since exits non-zero rather than counting everything" 1 "$([[ $rc -ne 0 ]] && echo 1 || echo 0)"
 
+echo "delegation-scan — a delegation a human caused must never score as unprompted (found in review):"
+H5="$TMP/home5"; P5="$H5/.claude/projects/-p5"; mkdir -p "$P5"
+# queued <file> <ts> <text>: a message typed while the model was mid-turn
+queued() { printf '{"type":"attachment","timestamp":"%s","attachment":{"type":"queued_command","prompt":[{"type":"text","text":"%s"}],"commandMode":"prompt"}}\n' "$2" "$3" >> "$1"; }
+# userstr <file> <ts> <text>: content as a plain string rather than blocks
+userstr() { printf '{"type":"user","timestamp":"%s","cwd":"/x","message":{"role":"user","content":"%s"}}\n' "$2" "$3" >> "$1"; }
+# usermixed <file> <ts> <human text>: a real message plus a system-reminder block in the same event
+usermixed() { printf '{"type":"user","timestamp":"%s","cwd":"/x","message":{"role":"user","content":[{"type":"text","text":"%s"},{"type":"text","text":"<system-reminder>harness noise</system-reminder>"}]}}\n' "$2" "$3" >> "$1"; }
+delegraw() { printf '{"type":"assistant","timestamp":"%s","message":{"role":"assistant","content":[{"type":"tool_use","id":"t","name":"Agent","input":{"subagent_type":%s}}]}}\n' "$2" "$3" >> "$1"; }
+
+user  "$P5/s1.jsonl" $D "when done, use workbench-reviewer on it"
+user  "$P5/s1.jsonl" $D "ok go"
+deleg "$P5/s1.jsonl" $D workbench-reviewer                      # named earlier, not just in the last message
+user  "$P5/s2.jsonl" $D "have the code reviewers check this"
+deleg "$P5/s2.jsonl" $D workbench-reviewer                      # plural role word
+user  "$P5/s3.jsonl" $D "review my changes please"
+deleg "$P5/s3.jsonl" $D workbench-reviewer                      # the verb, not the noun
+user  "$P5/s4.jsonl" $D "get an architecture review of this"
+deleg "$P5/s4.jsonl" $D workbench-architect                     # architecture, not architect
+user  "$P5/s5.jsonl" $D "fix stuff"
+queued "$P5/s5.jsonl" $D "use workbench-reviewer now"
+deleg "$P5/s5.jsonl" $D workbench-reviewer                      # typed mid-turn
+user  "$P5/s6.jsonl" $D "fix stuff"
+user  "$P5/s6.jsonl" $D "<command-message>review</command-message><command-name>/review</command-name>"
+deleg "$P5/s6.jsonl" $D workbench-reviewer                      # slash command
+userstr "$P5/s7.jsonl" $D "use workbench-qa-runner please"
+deleg "$P5/s7.jsonl" $D workbench-qa-runner                     # string content
+usermixed "$P5/s8.jsonl" $D "use workbench-reviewer now"
+deleg "$P5/s8.jsonl" $D workbench-reviewer                      # real text beside a reminder block
+user  "$P5/s9.jsonl" $D "This session is being continued from a previous conversation. We were using agent workbench methods."
+user  "$P5/s9.jsonl" $D "now fix the failing build"
+deleg "$P5/s9.jsonl" $D workbench-qa-runner                     # priming survives a continuation
+user  "$P5/s10.jsonl" $D "fix it"
+deleg "$P5/s10.jsonl" $D workbench-SECRETTEXT-here              # hostile name must not reach stdout
+user  "$P5/s11.jsonl" $D "fix it"
+delegraw "$P5/s11.jsonl" $D 123                                 # non-string subagent_type must not crash
+user  "$P5/s12.jsonl" $D "fix it"
+deleg "$P5/s12.jsonl" $D "evil;SECRETTEXT rm -rf"               # hostile non-adapter name must not reach stdout
+
+out5b="$(HOME="$H5" "$PY" -I "$REPO/scripts/delegation-scan.py" --since 2026-10-01 --out "$TMP/o5b.tsv" 2>&1)"; rc=$?
+t5="$(printf '%s\n' "$out5b" | grep '^totals:')"
+check "the scan survives malformed events"                            0 "$rc"
+check "none of these is unprompted"                                    "task=0"            "$(printf '%s' "$t5" | grep -o 'task=[0-9]*')"
+check "named: earlier message, queued, slash command, string, mixed"   "named=5"           "$(printf '%s' "$t5" | grep -o 'named=[0-9]*')"
+check "role-mentioned: plural, verb, architecture"                     "role-mentioned=3"  "$(printf '%s' "$t5" | grep -o 'role-mentioned=[0-9]*')"
+check "priming survives a continuation summary"                        "primed=1"          "$(printf '%s' "$t5" | grep -o 'primed=[0-9]*')"
+check "a hostile subagent name never reaches stdout"                   0 "$(printf '%s\n' "$out5b" | grep -c 'SECRETTEXT')"
+
 echo "delegation-scan — --out is confined, because the TSV can hold client text:"
 scan_out() { ( cd "$TMP/work" && HOME="$H" "$PY" -I "$REPO/scripts/delegation-scan.py" --since 2026-10-01 "$@" >/dev/null 2>&1 ); }
 scan_out --out ../escape.tsv;                rc=$?

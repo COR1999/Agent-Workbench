@@ -9,6 +9,18 @@ exist for communication and rollback, not concurrent use.
 
 ## [Unreleased]
 
+### Fixed
+- **`delegation-scan.py` scored human-caused delegations as unprompted.** An
+  independent `workbench-reviewer` run found that four of the six claims in my
+  review brief did not hold. Fixed: a name typed anywhere earlier in the session
+  counts (not only in the last message); role words match with inflections; messages
+  typed mid-turn (stored as `queued_command` attachments, 28 in the live store) and
+  slash commands (9) are read as human; the human test is per block so a reminder in
+  the same message cannot discard the human's words; priming survives a continuation
+  summary; a malformed `subagent_type` no longer aborts the scan; and only names this
+  repo defines, or a sanitised label, are ever printed, since transcripts are
+  untrusted input. Nine mutations of the fixes are each caught by the tests.
+
 ### Added
 - **`scripts/delegation-scan.py`: the counter for the delegation trial.** Counts
   delegations to the adapter's agents in Claude Code transcripts and buckets each
