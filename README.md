@@ -183,6 +183,7 @@ context and does not belong here.
 | [next-build-vs-live-dev-corrupts-dot-next](lessons/next-build-vs-live-dev-corrupts-dot-next.md) | `nextjs` | `next build` against a running `next dev` server corrupts both; stop dev first |
 | [opencode-env-keys-resolve-at-startup](lessons/opencode-env-keys-resolve-at-startup.md) | `opencode`, `windows` | Provider `{env:VAR}` keys resolve once at agent-server startup, not per request |
 | [eslint-bulk-suppressions-race-with-fix-prs](lessons/eslint-bulk-suppressions-race-with-fix-prs.md) | `node`, `eslint` | A rule MR with a bulk-suppressions file and a fix MR each pass alone and fail merged; the second must run `--prune-suppressions` |
+| [psscriptanalyzer-results-differ-by-edition](lessons/psscriptanalyzer-results-differ-by-edition.md) | `windows` | Analyzer rules check against the host's own cmdlets; a clean lint on PowerShell 5.1 can still fail under pwsh. Lint and test under both editions |
 
 Writing a new one: `templates/lesson.md`. It carries the four-part test and the
 closed `applies-to` vocabulary. Apply the test honestly — the ledger is worth
