@@ -10,6 +10,14 @@ exist for communication and rollback, not concurrent use.
 ## [Unreleased]
 
 ### Added
+- **`scripts/delegation-scan.py`: the counter for the delegation trial.** Counts
+  delegations to the adapter's agents in Claude Code transcripts and buckets each
+  by who occasioned it (task / named / role-mentioned / primed / batch). Only task
+  counts as unprompted. Counts only sessions that started after the install, by
+  time of day. stdout is aggregate-only; prompts go to a gitignored TSV. Prints the
+  roadmap's decision-rule status (zero unprompted by 35 sessions). Shares its
+  human-message and priming logic with `skill-usage-scan.py` instead of copying it.
+  `tests/delegation-scan.sh` pins it and runs in the CI `guards` job.
 - **`workbench-architect`: an Opus agent for decisions that need more reasoning.**
   Read-only, high effort, returns options, a recommendation, risks and what would
   change the answer. Its description says when *not* to use it, and the invariants

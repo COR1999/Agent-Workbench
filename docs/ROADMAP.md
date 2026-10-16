@@ -432,9 +432,23 @@ search), which are a cost, not a win. The kept-and-warranted rate is the score,
 for the same reason as the metric hazard above.
 **Decision rule, fixed now:** if there are zero task-routed delegations by 35
 sessions with the adapter installed, cut the adapter or replace the description
-routing with an explicit rule. Counting uses the session stores
-`scripts/skill-usage-scan.py` already reads, looking for `workbench-*` subagent
-calls. That counter does not exist yet.
+routing with an explicit rule. `scripts/delegation-scan.py` does the counting,
+over Claude Code transcripts only (the adapter is Claude-only):
+
+- A delegation is **task-routed** only if nobody named the agent, nobody named its
+  role, and the session was not opened by pointing at the library. Each of those
+  removes it from the count, on the same reasoning as the skill trial.
+- Only sessions that **started after the install** are counted, by time of day,
+  because agents load at session start. The first version used whole days and
+  counted two sessions that began hours before the install; found by reading the
+  first real run, not by a test.
+- Whether an architect use was warranted cannot be decided by machine. The scan
+  lists them for reading.
+
+Baseline at 2026-10-16T13:24Z, the latest install: **0 of 35 sessions, nothing
+counted yet.** The author's own verification runs write sessions into the same
+store; they are excluded only if they predate the install or are deleted, so read
+the TSV before trusting a count.
 
 ### JEV: what is established, and what is not
 
