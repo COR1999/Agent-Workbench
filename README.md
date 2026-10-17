@@ -5,7 +5,7 @@ skill library an AI coding agent can carry from project to project. Designed fro
 an archaeology of real repositories — its conclusions are distilled in
 `docs/V0.1_DESIGN_SPECIFICATION.md` — not from generic best-practice lists.
 
-**Scope:** a lessons ledger and ten skills (see the Skills table below).
+**Scope:** a lessons ledger and eleven skills (see the Skills table below).
 Deliberately small. See `docs/V0.1_DESIGN_SPECIFICATION.md`
 for what is intentionally *not* here and why.
 
@@ -64,7 +64,7 @@ CHANGELOG.md       what changed between versions
 environments/      machine-specific facts; install.sh appends the matching one
 lessons/           conditional knowledge — true when applies-to matches
 templates/         lesson.md, project-AGENTS.md
-skills/            ten skills (each SKILL.md + VALIDATION.md)
+skills/            eleven skills (each SKILL.md + VALIDATION.md)
 adapters/          opt-in, harness-specific; the core never depends on these
 scripts/
   install.sh       machine setup: install skills into the harness skills dirs
@@ -228,6 +228,7 @@ having only while every entry changes what an agent does.
 | [capture-lesson](skills/capture-lesson/SKILL.md) | Immediately after something surprises you or costs you time | Applies the four-part test; writes to `lessons/` + updates README. Refuses to write a lesson that fails the test. |
 | [handoff](skills/handoff/SKILL.md) | When context is getting long / a session is ending / resuming a fresh session | Writes/reads a tactical handoff so a near-empty session continues without the old conversation. See [docs/CONTEXT-LOOP.md](docs/CONTEXT-LOOP.md). |
 | [make-issue](skills/make-issue/SKILL.md) | The human says "make issue" / "log an issue" / "open an issue" | Reads the repo's live labels, searches for a duplicate, labels from the content (never invented), writes the body with evidence and a done-when list, names the model, files it and reads it back. Not field-validated yet. |
+| [measure-improvement](skills/measure-improvement/SKILL.md) | Before claiming a change made something faster or cheaper; "prove it's faster", "show the improvement" | Same script before and after on the real schema and role, repeated runs, a correctness check beside every speed number, honest limits; builds a before/after chart from saved output for the PR. One firing, by its author; not independently validated. |
 | [design-handbook](skills/design-handbook/SKILL.md) | "design/redesign this", "show me what it could look like" | A browsable HTML handbook to approve BEFORE any production code changes. |
 | [explain-and-open-pr](skills/explain-and-open-pr/SKILL.md) | "open a PR", "don't let this stack up" | Isolates the change on a clean branch; commits a work record; PR body leads in plain English. |
 | [tdd](skills/tdd/SKILL.md) | "use TDD", "write the test first" | The red-green loop and the decisions "use TDD" hides. Methodology, not the whole build. |

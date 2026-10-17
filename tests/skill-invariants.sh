@@ -59,6 +59,12 @@ check skills/make-issue/SKILL.md "duplicate before writing"       "searches for 
 check skills/make-issue/SKILL.md "Co-Authored-By"                 "names the authoring model in the body"
 check skills/make-issue/SKILL.md "not\*{0,2} working it"           "filing an issue is not starting the work"
 
+echo "measure-improvement:"
+check skills/measure-improvement/SKILL.md "never report a number you did not run" "no number is reported that was not run"
+check skills/measure-improvement/SKILL.md "same harness"                        "same harness before and after"
+check skills/measure-improvement/SKILL.md "correctness number"                  "a speed number carries a correctness check"
+check skills/measure-improvement/SKILL.md "look at the png"                     "the picture is looked at before publishing"
+
 echo "agentic-vocabulary:"
 check skills/agentic-vocabulary/SKILL.md "inventing a definition" "look up, don't invent, unknown terms"
 

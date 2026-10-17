@@ -10,6 +10,14 @@ exist for communication and rollback, not concurrent use.
 ## [Unreleased]
 
 ### Added
+- **`measure-improvement` skill.** Use before claiming a change made something faster,
+  smaller or cheaper. Real code path and real database role (a model without
+  row-level security under-reported a cost 200x), more than one data size, the same
+  script before and after, adaptive repeats, a correctness check beside every speed
+  number, failed attempts recorded, interference checked, a mutation check on the
+  test, raw output kept. `scripts/before-after-chart.mjs` and `scripts/render-png.sh`
+  turn the saved numbers into a before/after image for the PR. One firing, by its
+  author; see its VALIDATION.md. Four invariants in `tests/skill-invariants.sh`.
 - **`make-issue` skill.** Fires on "make issue" (and open/log/file/raise an issue).
   Reads the repository's live labels and its own issue rules, searches for a duplicate
   first, picks labels from the content (never invents or silently creates one), writes
